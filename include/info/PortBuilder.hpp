@@ -39,13 +39,6 @@ namespace info {
             port->emit<V>(val);
           });
         });
-
-        // // convert into void (typeless) function
-        // this->applyFuncs.push_back([func](void* instance, std::function<void(const void*)> voidvaloutfunc){
-        //   // func(*(T*)instance, [voidvaloutfunc](const V& val){
-        //   //     voidvaloutfunc((void*)&val);
-        //   // });
-        // });
       }
 
       void apply(std::function<void(T&, TypedPort<V>&)> logic) {

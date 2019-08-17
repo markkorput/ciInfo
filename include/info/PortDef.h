@@ -26,13 +26,14 @@ namespace info {
       int getFlags() const { return flags; }
 
       void addConnector(ConnectorFunc func) {
-
+        connectorFuncs.push_back(func);
       }
 
     private:
       std::string id;
       std::string type;
       int flags;
+      std::vector<ConnectorFunc> connectorFuncs;
       // ::ctree::Signal<void(void)> signal;
   };
 
