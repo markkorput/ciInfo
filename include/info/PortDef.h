@@ -21,6 +21,7 @@ namespace info {
       }
   
     public:
+
       const std::string& getId() const { return id; }
       const std::string& getType() const { return type; }
       int getFlags() const { return flags; }
@@ -32,6 +33,10 @@ namespace info {
       template<class T>
       std::shared_ptr<Port> createPortFor(T& instance) {
         auto portRef = std::make_shared<Port>(id, type, flags);
+        
+        for(auto func : connectorFuncs)
+          func((void*)&instance, portRef.get());
+
         return portRef;
       }
 

@@ -1,5 +1,6 @@
 #include "catch.hpp"
 
+#include <iostream>
 #include "cinder/app/App.h" // for CINDER_MSW macro
 #include "info/Interface.h"
 
@@ -18,7 +19,10 @@ class Keyboard {
         
         builder.attr<bool>("enabled")
           ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
-            port.inSignal.connect([&instance](const bool& val){
+            std::cout << "Keyboard::enabled::apply" << std::endl;
+
+            port.input([&instance](const bool& val){
+              std::cout << "Keyboard::enabled::apply::connect: " << val << std::endl;
               instance.enabled = val;
             });
 
@@ -40,7 +44,7 @@ class Keyboard {
     // std::vector<ci::signals::Connection> connections;
   
     // ctree::Signal<void(char)> keySignal;
-    bool enabled = true;
+    bool enabled = false;
 };
 
 TEST_CASE("info::Interface", ""){
@@ -66,10 +70,12 @@ TEST_CASE("info::Interface", ""){
 
     Keyboard keyboard;
     auto instanceRef = info->createInstance(keyboard);
+    REQUIRE(instanceRef->port<bool>("enabled") != NULL);
 
-    instanceRef->port<bool>("enabled")->emit(false);
     REQUIRE(keyboard.enabled == false);
-    instanceRef->port<bool>("enabled")->emit(true);
+    instanceRef->port<bool>("enabled")->emitIn(true);
     REQUIRE(keyboard.enabled == true);
+    instanceRef->port<bool>("enabled")->emitIn(false);
+    REQUIRE(keyboard.enabled == false);
   }
 }

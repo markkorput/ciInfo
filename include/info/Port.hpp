@@ -24,8 +24,13 @@ namespace info {
       const std::string& getType() const { return type; }
 
       template<typename V>
-      void emit(const V& val) {
-        outSignal.emit((const void*)val);
+      void emitOut(const V& val) {
+        outSignal.emit((const void*)&val);
+      }
+
+      template<typename V>
+      void emitIn(const V& val) {
+        inSignal.emit((const void*)&val);
       }
 
     public:
@@ -41,12 +46,33 @@ namespace info {
   template<typename V>
   class TypedPort : public Port {
     public:
+
+      typedef std::function<void(const void*)> InFuncVoid;
+      typedef std::function<void(const V&)> InFuncTypeRef;
+
+    public:
       TypedPort(const std::string& id, int flags = Port::FLAG_INOUT) : Port(id, typeid(V).name(), flags) {
       }
 
-      void emit(const V& val) {
-        Port::emit<V>(val);
+      void emitIn(const V& val) {
+        Port::emitIn<V>(val);
       }
+
+      void emitOut(const V& val) {
+        Port::emitOut<V>(val);
+      }
+
+      cinder::signals::Connection input(InFuncTypeRef func) {
+        return inSignal.connect(toVoid(func));
+      }
+
+      private:
+
+        inline InFuncVoid toVoid(InFuncTypeRef func) { 
+          return [func](const void* arg){
+            func(*(const V*)arg);
+          };
+        }
   };
 
 }
