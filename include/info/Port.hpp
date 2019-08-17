@@ -35,6 +35,13 @@ namespace info {
 
   template<typename V>
   class TypedPort : public Port {
+    public:
+      TypedPort(const std::string& id, int flags = Port::FLAG_INOUT) : Port(id, typeid(V).name(), flags) {
+      }
+
+      void emit(const V& val) {
+
+      }
   };
 
 }

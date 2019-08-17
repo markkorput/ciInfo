@@ -3,12 +3,12 @@
 #include "cinder/app/App.h" // for CINDER_MSW macro
 #include "info/Interface.h"
 
-class InfoKeyboard {
+class Keyboard {
   public:
     static info::Interface* createInfoInterface() {
-      return info::Interface::create<InfoKeyboard>([](info::Builder<InfoKeyboard>& builder){
+      return info::Interface::create<Keyboard>([](info::Builder<Keyboard>& builder){
         builder.output<char>("KeyCode")
-          .apply([](InfoKeyboard& instance, std::function<void(const char&)> out) {
+          .apply([](Keyboard& instance, std::function<void(const char&)> out) {
             instance.onKeyDown([&out](char keycode){
               out(keycode);
             });
@@ -17,14 +17,12 @@ class InfoKeyboard {
         builder.output<bool>("HasKeyDown");
         
         builder.attr<bool>("enabled")
-          .apply([](InfoKeyboard& instance, info::TypedPort<bool>& port) {
+          .apply([](Keyboard& instance, info::TypedPort<bool>& port) {
             
 
           });
       });
     }
-
-  protected:
 
     void onKeyDown(std::function<void(char)> func) {
       // if(key.size() != 1) return;
@@ -37,15 +35,15 @@ class InfoKeyboard {
       // this->connections.push_back(this->keySignal.connect(func));
     }
 
-  private:
-    std::vector<ci::signals::Connection> connections;
-  public:
+    // std::vector<ci::signals::Connection> connections;
+  
     // ctree::Signal<void(char)> keySignal;
+    bool enabled = true;
 };
 
 TEST_CASE("info::Interface", ""){
   SECTION("create"){
-    auto info = InfoKeyboard::createInfoInterface();
+    auto info = Keyboard::createInfoInterface();
 
     // verify we can extract outputs information from info interface
     std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled"};
@@ -53,9 +51,22 @@ TEST_CASE("info::Interface", ""){
       REQUIRE(ids[i] == info->getOutputs()[i]->getId());
     }
 
+    // verify we can extract outputs type information from info interface
     std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
     for(int i=0; i<types.size(); i++) {
       REQUIRE(types[i] == info->getOutputs()[i]->getType());
     }
+  }
+
+  SECTION("createInstance") {
+    auto info = Keyboard::createInfoInterface();
+
+    Keyboard keyboard;
+    auto instanceRef = info->createInstance(keyboard);
+
+    instanceRef->port<bool>("enabled")->emit(false);
+    REQUIRE(keyboard.enabled == false);
+    instanceRef->port<bool>("enabled")->emit(true);
+    REQUIRE(keyboard.enabled == true);
   }
 }
