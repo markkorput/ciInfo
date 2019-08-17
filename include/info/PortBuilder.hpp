@@ -35,7 +35,7 @@ namespace info {
         // connectors connect an runtime object to an info port using custom caller-provided logic
         this->portDefRef->addConnector([logic](void* instance, Port* port){
           logic(*(T*)instance, [port](const V& val){
-            port->emitOut<V>(val);
+            port->dataOut<V>(val);
           });
         });
       }

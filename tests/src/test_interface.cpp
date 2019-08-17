@@ -22,10 +22,16 @@ class Keyboard {
         builder.attr<bool>("enabled")
           ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
 
-            port.input([&instance](const bool& val){
+            port.onDataIn([&instance](const bool& val){
               instance.enabled = val;
             });
 
+          });
+        
+        builder.signal("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
+            instance.keySignal.connect([&port](char keycode){
+              port.signalOut();
+            });
           });
       });
     }
@@ -39,7 +45,7 @@ TEST_CASE("info::Interface", ""){
     auto info = Keyboard::createInfoInterface();
 
     // verify we can extract outputs information from info interface
-    std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled"};
+    std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled", "AnyKey"};
     REQUIRE(ids.size() == info->getPorts().size());
     for(int i=0; i<ids.size(); i++) {
       REQUIRE(ids[i] == info->getPorts()[i]->getId());
@@ -60,9 +66,9 @@ TEST_CASE("info::Interface", ""){
     REQUIRE(instanceRef->port<bool>("enabled") != NULL);
 
     REQUIRE(keyboard.enabled == false);
-    instanceRef->port<bool>("enabled")->emitIn(true);
+    instanceRef->port<bool>("enabled")->dataIn(true);
     REQUIRE(keyboard.enabled == true);
-    instanceRef->port<bool>("enabled")->emitIn(false);
+    instanceRef->port<bool>("enabled")->dataIn(false);
     REQUIRE(keyboard.enabled == false);
   }
 
@@ -75,12 +81,31 @@ TEST_CASE("info::Interface", ""){
     
     auto outport = instanceRef->port<char>("KeyCode");
     REQUIRE(outport != NULL);
-    outport->output([&capture](const char& newval){
+    outport->onDataOut([&capture](const char& newval){
       capture = newval;
     });
 
     REQUIRE(capture == '0');
     keyboard.keySignal.emit('3');
     REQUIRE(capture == '3');
+  }
+
+  SECTION("signalOut & onOutput") {
+    auto info = Keyboard::createInfoInterface();
+
+    Keyboard keyboard;
+    auto instanceRef = info->createInstance(keyboard);
+    char counter = 0;
+    
+    instanceRef->signalPort("AnyKey")->onOutput([&counter](){
+      counter += 1;
+    });
+
+    REQUIRE(counter == 0);
+    keyboard.keySignal.emit('7');
+    REQUIRE(counter == 1);
+    keyboard.keySignal.emit(' ');
+    keyboard.keySignal.emit(' ');
+    REQUIRE(counter == 3);
   }
 }

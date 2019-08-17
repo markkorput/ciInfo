@@ -13,6 +13,9 @@ namespace info {
       const static int FLAG_IN = 1;
       const static int FLAG_OUT = (1 >> 1);
       const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
+      
+      typedef std::function<void(const void*)> InFuncVoid;
+      typedef std::function<void()> InFuncNoArg;
 
     public:
 
@@ -24,13 +27,37 @@ namespace info {
       const std::string& getType() const { return type; }
 
       template<typename V>
-      void emitOut(const V& val) {
+      void dataOut(const V& val) {
         outSignal.emit((const void*)&val);
       }
 
       template<typename V>
-      void emitIn(const V& val) {
+      void dataIn(const V& val) {
         inSignal.emit((const void*)&val);
+      }
+
+      void signalOut() {
+        outSignal.emit(NULL);
+      }
+
+      void signalIn() {
+        inSignal.emit(NULL);
+      }
+
+      cinder::signals::Connection onInput(InFuncNoArg func) {
+        return inSignal.connect(toVoid(func));
+      }
+
+      cinder::signals::Connection onOutput(InFuncNoArg func) {
+        return outSignal.connect(toVoid(func));
+      }
+
+    protected:
+
+      inline InFuncVoid toVoid(InFuncNoArg func) { 
+        return [func](const void* arg) {
+          func();
+        };
       }
 
     public:
@@ -45,28 +72,27 @@ namespace info {
 
   template<typename V>
   class TypedPort : public Port {
+    
     public:
-
-      typedef std::function<void(const void*)> InFuncVoid;
       typedef std::function<void(const V&)> InFuncTypeRef;
 
     public:
       TypedPort(const std::string& id, int flags = Port::FLAG_INOUT) : Port(id, typeid(V).name(), flags) {
       }
 
-      void emitIn(const V& val) {
-        Port::emitIn<V>(val);
+      void dataIn(const V& val) {
+        Port::dataIn<V>(val);
       }
 
-      void emitOut(const V& val) {
-        Port::emitOut<V>(val);
+      void dataOut(const V& val) {
+        Port::dataOut<V>(val);
       }
 
-      cinder::signals::Connection input(InFuncTypeRef func) {
+      cinder::signals::Connection onDataIn(InFuncTypeRef func) {
         return inSignal.connect(toVoid(func));
       }
 
-      cinder::signals::Connection output(InFuncTypeRef func) {
+      cinder::signals::Connection onDataOut(InFuncTypeRef func) {
         return outSignal.connect(toVoid(func));
       }
 

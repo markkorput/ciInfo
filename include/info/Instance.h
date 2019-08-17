@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include "Port.hpp"
+#include "Void.h"
 // #include "ciCMS/cfg/Cfg.h"
 
 namespace info {
@@ -21,6 +22,10 @@ namespace info {
             return (TypedPort<V>*)portRef.get();
 
         return NULL;
+      }
+
+      inline TypedPort<Void>* signalPort(const std::string& portname) {
+        return port<Void>(portname);
       }
 
     public:
