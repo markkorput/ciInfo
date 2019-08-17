@@ -4,6 +4,7 @@
 // #include "ciCMS/cfg/Cfg.h"
 #include <stdlib.h>
 #include <string>
+#include "cinder/Signals.h"
 
 namespace info {
 
@@ -22,20 +23,19 @@ namespace info {
       const std::string& getId() const { return id; }
       const std::string& getType() const { return type; }
 
-      void invokeMethod(const void* arg){
-        // signal.emit();
-      }
-
       template<typename V>
       void emit(const V& val) {
 
       }
 
+    public:
+      cinder::signals::Signal<void(void*)> inSignal;
+      cinder::signals::Signal<void(void*)> outSignal;
+
     private:
       std::string id;
       std::string type;
       int flags;
-      // ::ctree::Signal<void(void)> signal;
   };
 
   template<typename V>
