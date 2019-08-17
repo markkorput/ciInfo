@@ -29,6 +29,12 @@ namespace info {
         connectorFuncs.push_back(func);
       }
 
+      template<class T>
+      std::shared_ptr<Port> createPortFor(T& instance) {
+        auto portRef = std::make_shared<Port>(id, type, flags);
+        return portRef;
+      }
+
     private:
       std::string id;
       std::string type;

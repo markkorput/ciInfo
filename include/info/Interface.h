@@ -43,13 +43,14 @@ namespace info {
 
       // configure an instance with the given Cfg
       template<class T>
-      std::shared_ptr<Instance> createInstance(T& instance) { 
-        auto ref = std::make_shared<Instance>();
+      std::shared_ptr<Instance> createInstance(T& instance) {
+        std::vector<std::shared_ptr<Port>> ports;
 
-        // for(auto& func : instanceFuncs)
-          //   func((void*)&instance);
+        for(auto portDefRef : portDefRefs)
+          ports.push_back(portDefRef->createPortFor(instance));
 
-        return ref;
+        auto instanceRef = std::make_shared<Instance>(ports);
+        return instanceRef;
       }
 
     public:
@@ -59,9 +60,6 @@ namespace info {
       }
 
     private:
-      std::vector<std::shared_ptr<Port>> outputs;
-      std::vector<std::function<void(void*)>> instanceFuncs;
-
       std::vector<std::shared_ptr<PortDef>> portDefRefs;
   };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include "Port.hpp"
 // #include "ciCMS/cfg/Cfg.h"
 
@@ -10,9 +11,8 @@ namespace info {
 
     public:
 
-      // void cfg(cms::cfg::Cfg& cfg) {
-      //   // TODO
-      // }
+      Instance(std::vector<std::shared_ptr<Port>> ports) : portRefs(ports) {
+      }
 
       template<typename V>
       TypedPort<V>* port(const std::string& portname) {
@@ -26,9 +26,6 @@ namespace info {
     public:
 
       std::vector<std::shared_ptr<Port>> portRefs;
-
-      // C++ class object
-      // cfg methods
   };
 
 }
