@@ -1,15 +1,18 @@
 #include "catch.hpp"
 
-#include "cinder/app/App.h" // for CINDER_MSW macro
+#include <iostream>
+#include <memory>
 #include "info/Interface.h"
+// #include "cinder/app/App.h" // for CINDER_MSW macro
+#include "cinder/Signals.h"
 
-class InfoKeyboard {
+class Keyboard {
   public:
-    static info::Interface* createInfoInterface() {
-      return info::Interface::create<InfoKeyboard>([](info::Builder<InfoKeyboard>& builder){
+    static std::shared_ptr<info::Interface> createInfoInterface() {
+      return info::Interface::create<Keyboard>([](info::Builder<Keyboard>& builder){
         builder.output<char>("KeyCode")
-          .apply([](InfoKeyboard& instance, std::function<void(const char&)> out) {
-            instance.onKeyDown([&out](char keycode){
+          ->apply([](Keyboard& instance, std::function<void(const char&)> out) {
+            instance.keySignal.connect([out](char keycode){
               out(keycode);
             });
           });
@@ -17,45 +20,92 @@ class InfoKeyboard {
         builder.output<bool>("HasKeyDown");
         
         builder.attr<bool>("enabled")
-          .apply([](InfoKeyboard& instance, info::TypedPort<bool>& port) {
-            
+          ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
 
+            port.onDataIn([&instance](const bool& val){
+              instance.enabled = val;
+            });
+
+          });
+        
+        builder.signal("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
+            instance.keySignal.connect([&port](char keycode){
+              port.signalOut();
+            });
           });
       });
     }
-
-  protected:
-
-    void onKeyDown(std::function<void(char)> func) {
-      // if(key.size() != 1) return;
-      // char chr = key[0];
-
-      // this->connections.push_back(ci::app::getWindow()->getSignalKeyDown().connect([func](ci::app::KeyEvent& event){
-      //   func(event.getChar());
-      // }));
-
-      // this->connections.push_back(this->keySignal.connect(func));
-    }
-
-  private:
-    std::vector<ci::signals::Connection> connections;
-  public:
-    // ctree::Signal<void(char)> keySignal;
+ 
+    cinder::signals::Signal<void(char)> keySignal;
+    bool enabled = false;
 };
 
 TEST_CASE("info::Interface", ""){
   SECTION("create"){
-    auto info = InfoKeyboard::createInfoInterface();
+    auto info = Keyboard::createInfoInterface();
 
     // verify we can extract outputs information from info interface
-    std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled"};
+    std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled", "AnyKey"};
+    REQUIRE(ids.size() == info->getPorts().size());
     for(int i=0; i<ids.size(); i++) {
-      REQUIRE(ids[i] == info->getOutputs()[i]->getId());
+      REQUIRE(ids[i] == info->getPorts()[i]->getId());
     }
 
+    // verify we can extract outputs type information from info interface
     std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
     for(int i=0; i<types.size(); i++) {
-      REQUIRE(types[i] == info->getOutputs()[i]->getType());
+      REQUIRE(types[i] == info->getPorts()[i]->getType());
     }
+  }
+
+  SECTION("createInstance + input") {
+    auto info = Keyboard::createInfoInterface();
+
+    Keyboard keyboard;
+    auto instanceRef = info->createInstance(keyboard);
+    REQUIRE(instanceRef->port<bool>("enabled") != NULL);
+
+    REQUIRE(keyboard.enabled == false);
+    instanceRef->port<bool>("enabled")->dataIn(true);
+    REQUIRE(keyboard.enabled == true);
+    instanceRef->port<bool>("enabled")->dataIn(false);
+    REQUIRE(keyboard.enabled == false);
+  }
+
+  SECTION("createInstance + output") {
+    auto info = Keyboard::createInfoInterface();
+
+    Keyboard keyboard;
+    auto instanceRef = info->createInstance(keyboard);
+    char capture = '0';
+    
+    auto outport = instanceRef->port<char>("KeyCode");
+    REQUIRE(outport != NULL);
+    outport->onDataOut([&capture](const char& newval){
+      capture = newval;
+    });
+
+    REQUIRE(capture == '0');
+    keyboard.keySignal.emit('3');
+    REQUIRE(capture == '3');
+  }
+
+  SECTION("signalOut & onOutput") {
+    auto info = Keyboard::createInfoInterface();
+
+    Keyboard keyboard;
+    auto instanceRef = info->createInstance(keyboard);
+    char counter = 0;
+    
+    instanceRef->signalPort("AnyKey")->onOutput([&counter](){
+      counter += 1;
+    });
+
+    REQUIRE(counter == 0);
+    keyboard.keySignal.emit('7');
+    REQUIRE(counter == 1);
+    keyboard.keySignal.emit(' ');
+    keyboard.keySignal.emit(' ');
+    REQUIRE(counter == 3);
   }
 }

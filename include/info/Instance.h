@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+#include "Port.hpp"
+#include "Void.h"
 // #include "ciCMS/cfg/Cfg.h"
 
 namespace info {
@@ -8,14 +12,25 @@ namespace info {
 
     public:
 
-      // void cfg(cms::cfg::Cfg& cfg) {
-      //   // TODO
-      // }
+      Instance(std::vector<std::shared_ptr<Port>> ports) : portRefs(ports) {
+      }
 
-    private:
+      template<typename V>
+      TypedPort<V>* port(const std::string& portname) {
+        for(auto portRef : portRefs)
+          if (portRef->getId() == portname)
+            return (TypedPort<V>*)portRef.get();
 
-      // C++ class object
-      // cfg methods
+        return NULL;
+      }
+
+      inline TypedPort<Void>* signalPort(const std::string& portname) {
+        return port<Void>(portname);
+      }
+
+    public:
+
+      std::vector<std::shared_ptr<Port>> portRefs;
   };
 
 }
