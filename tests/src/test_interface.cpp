@@ -18,7 +18,9 @@ class Keyboard {
         
         builder.attr<bool>("enabled")
           ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
-            
+            port.inSignal.connect([&instance](const bool& val){
+              instance.enabled = val;
+            });
 
           });
       });

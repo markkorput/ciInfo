@@ -25,12 +25,12 @@ namespace info {
 
       template<typename V>
       void emit(const V& val) {
-
+        outSignal.emit((const void*)val);
       }
 
     public:
-      cinder::signals::Signal<void(void*)> inSignal;
-      cinder::signals::Signal<void(void*)> outSignal;
+      cinder::signals::Signal<void(const void*)> inSignal;
+      cinder::signals::Signal<void(const void*)> outSignal;
 
     private:
       std::string id;
