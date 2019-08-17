@@ -8,16 +8,16 @@ class Keyboard {
     static info::Interface* createInfoInterface() {
       return info::Interface::create<Keyboard>([](info::Builder<Keyboard>& builder){
         builder.output<char>("KeyCode")
-          .apply([](Keyboard& instance, std::function<void(const char&)> out) {
-            instance.onKeyDown([&out](char keycode){
-              out(keycode);
-            });
+          ->apply([](Keyboard& instance, std::function<void(const char&)> out) {
+            // instance.onKeyDown([&out](char keycode){
+            //   out(keycode);
+            // });
           });
 
         builder.output<bool>("HasKeyDown");
         
         builder.attr<bool>("enabled")
-          .apply([](Keyboard& instance, info::TypedPort<bool>& port) {
+          ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
             
 
           });
@@ -47,14 +47,15 @@ TEST_CASE("info::Interface", ""){
 
     // verify we can extract outputs information from info interface
     std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled"};
+    REQUIRE(ids.size() == info->getPorts().size());
     for(int i=0; i<ids.size(); i++) {
-      REQUIRE(ids[i] == info->getOutputs()[i]->getId());
+      REQUIRE(ids[i] == info->getPorts()[i]->getId());
     }
 
     // verify we can extract outputs type information from info interface
     std::vector<std::string> types = {"c" /* char */, "b" /* bool */};
     for(int i=0; i<types.size(); i++) {
-      REQUIRE(types[i] == info->getOutputs()[i]->getType());
+      REQUIRE(types[i] == info->getPorts()[i]->getType());
     }
   }
 

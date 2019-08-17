@@ -26,6 +26,11 @@ namespace info {
         // signal.emit();
       }
 
+      template<typename V>
+      void emit(const V& val) {
+
+      }
+
     private:
       std::string id;
       std::string type;
@@ -40,7 +45,7 @@ namespace info {
       }
 
       void emit(const V& val) {
-
+        Port::emit<V>(val);
       }
   };
 

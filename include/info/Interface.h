@@ -13,30 +13,33 @@ namespace info {
 
       template<class T>
       static Interface* create(std::function<void(Builder<T>&)> func) {
-        auto builder = new Builder<T>();
-        auto interface = new Interface();
-
+        Builder<T> builder;
         // let caller configure our builder
-        func(*builder);
+        func(builder);
 
-        for(auto& builderOutput : builder->outputs) {
-          auto output = std::shared_ptr<Port>(builderOutput->create());
+        auto interface = new Interface();
+        interface->portDefRefs = builder.getPortDefs();
 
-          /// add output to the interface based on the output definitions added to the builder
-          interface->outputs.push_back(output);
+      //   for(auto& builderOutput : builder->outputs) {
+      //     auto output = std::shared_ptr<Port>(builderOutput->create());
 
-          /// add instance configuration logic to our interface based on definitions in the builder
-          for(auto& func : builderOutput->applyFuncs) {
-            interface->instanceFuncs.push_back([func, output](void* instance){
-              func(instance, [output](const void* arg){
-                output->invokeMethod(arg);
-              });
-            });
-          }
-        }
+      //     /// add output to the interface based on the output definitions added to the builder
+      //     interface->outputs.push_back(output);
+
+      //     /// add instance configuration logic to our interface based on definitions in the builder
+      //     for(auto& func : builderOutput->applyFuncs) {
+      //       interface->instanceFuncs.push_back([func, output](void* instance){
+      //         func(instance, [output](const void* arg){
+      //           output->invokeMethod(arg);
+      //         });
+      //       });
+      //     }
+      //   }
 
         return interface;
       }
+
+    public:
 
       // configure an instance with the given Cfg
       template<class T>
@@ -50,13 +53,16 @@ namespace info {
       }
 
     public:
-      const std::vector<std::shared_ptr<Port>>& getOutputs() const {
-        return outputs;
+
+      const std::vector<std::shared_ptr<PortDef>>& getPorts() const {
+        return portDefRefs;
       }
 
     private:
       std::vector<std::shared_ptr<Port>> outputs;
       std::vector<std::function<void(void*)>> instanceFuncs;
+
+      std::vector<std::shared_ptr<PortDef>> portDefRefs;
   };
 
 }
