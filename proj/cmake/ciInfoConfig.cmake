@@ -8,7 +8,7 @@ if( NOT TARGET ciInfo )
 	add_library( ciInfo ${ciInfo_SOURCES} )
 
 	target_include_directories( ciInfo PUBLIC "${ciInfo_INCLUDE_PATH}" )
-	target_include_directories( ciInfo SYSTEM BEFORE PUBLIC "${CINDER_PATH}/include" )
+	target_include_directories( ciInfo SYSTEM BEFORE PUBLIC "${ciInfo_INCLUDE_PATH}" )
 
 	if( NOT TARGET cinder )
 		    include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
