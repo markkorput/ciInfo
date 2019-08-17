@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+	<block
+		name="ciInfo"
+		id="com.shortnotion.info"
+		git="git://github.com/markkorput/ciInfo"
+		author="ShortNotion"
+		summary="VPL-like interfacing for any kind of C++ class"
+		license="MIT"
+		version="0.0.1"
+		url="http://github.com/markkorput/ciInfo">
+
+		<supports os="macosx" />
+		<supports os="msw" /><!-- ??? -->
+
+		<headerPattern>linclude/info/*.h</headerPattern>
+		<headerPattern>linclude/info/*.hpp</headerPattern>
+
+		<platform os="macosx">
+			<includePath>include/</includePath>
+		</platform>
+
+		<platform os="msw">
+			<includePath>include/</includePath>
+		</platform>
+
+	</block>
+
+	<!-- <template>templates/templateName/template.xml</template> -->
+</cinder>
