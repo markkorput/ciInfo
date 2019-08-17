@@ -1,49 +1,36 @@
 #include "catch.hpp"
 
 #include <iostream>
-#include "cinder/app/App.h" // for CINDER_MSW macro
+#include <memory>
 #include "info/Interface.h"
+// #include "cinder/app/App.h" // for CINDER_MSW macro
+#include "cinder/Signals.h"
 
 class Keyboard {
   public:
-    static info::Interface* createInfoInterface() {
+    static std::shared_ptr<info::Interface> createInfoInterface() {
       return info::Interface::create<Keyboard>([](info::Builder<Keyboard>& builder){
         builder.output<char>("KeyCode")
           ->apply([](Keyboard& instance, std::function<void(const char&)> out) {
-            // instance.onKeyDown([&out](char keycode){
-            //   out(keycode);
-            // });
+            instance.keySignal.connect([out](char keycode){
+              out(keycode);
+            });
           });
 
         builder.output<bool>("HasKeyDown");
         
         builder.attr<bool>("enabled")
           ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
-            std::cout << "Keyboard::enabled::apply" << std::endl;
 
             port.input([&instance](const bool& val){
-              std::cout << "Keyboard::enabled::apply::connect: " << val << std::endl;
               instance.enabled = val;
             });
 
           });
       });
     }
-
-    void onKeyDown(std::function<void(char)> func) {
-      // if(key.size() != 1) return;
-      // char chr = key[0];
-
-      // this->connections.push_back(ci::app::getWindow()->getSignalKeyDown().connect([func](ci::app::KeyEvent& event){
-      //   func(event.getChar());
-      // }));
-
-      // this->connections.push_back(this->keySignal.connect(func));
-    }
-
-    // std::vector<ci::signals::Connection> connections;
-  
-    // ctree::Signal<void(char)> keySignal;
+ 
+    cinder::signals::Signal<void(char)> keySignal;
     bool enabled = false;
 };
 
@@ -65,7 +52,7 @@ TEST_CASE("info::Interface", ""){
     }
   }
 
-  SECTION("createInstance") {
+  SECTION("createInstance + input") {
     auto info = Keyboard::createInfoInterface();
 
     Keyboard keyboard;
@@ -77,5 +64,23 @@ TEST_CASE("info::Interface", ""){
     REQUIRE(keyboard.enabled == true);
     instanceRef->port<bool>("enabled")->emitIn(false);
     REQUIRE(keyboard.enabled == false);
+  }
+
+  SECTION("createInstance + output") {
+    auto info = Keyboard::createInfoInterface();
+
+    Keyboard keyboard;
+    auto instanceRef = info->createInstance(keyboard);
+    char capture = '0';
+    
+    auto outport = instanceRef->port<char>("KeyCode");
+    REQUIRE(outport != NULL);
+    outport->output([&capture](const char& newval){
+      capture = newval;
+    });
+
+    REQUIRE(capture == '0');
+    keyboard.keySignal.emit('3');
+    REQUIRE(capture == '3');
   }
 }

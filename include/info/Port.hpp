@@ -66,6 +66,10 @@ namespace info {
         return inSignal.connect(toVoid(func));
       }
 
+      cinder::signals::Connection output(InFuncTypeRef func) {
+        return outSignal.connect(toVoid(func));
+      }
+
       private:
 
         inline InFuncVoid toVoid(InFuncTypeRef func) { 

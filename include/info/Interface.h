@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <vector>
+#include <memory>
 #include "Port.hpp"
 #include "Builder.hpp"
 #include "Instance.h"
@@ -12,14 +13,14 @@ namespace info {
     public:
 
       template<class T>
-      static Interface* create(std::function<void(Builder<T>&)> func) {
+      static std::shared_ptr<Interface> create(std::function<void(Builder<T>&)> func) {
         Builder<T> builder;
 
         // let caller configure our builder
         func(builder);
 
         // create interface and populate with port defs from builder
-        auto interface = new Interface();
+        auto interface = std::make_shared<Interface>();
         interface->portDefRefs = builder.getPortDefs();
 
         return interface;

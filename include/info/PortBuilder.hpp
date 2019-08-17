@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <iostream>
 #include <functional>
 #include "Port.hpp"
 
@@ -17,8 +18,6 @@ namespace info {
 
     protected:
       std::shared_ptr<PortDef> portDefRef;
-      std::vector<std::function<void(void*, std::function<void(const void*)>)>> applyFuncs;
-      
   };
 
   template<class T, typename V>
