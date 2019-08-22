@@ -9,7 +9,7 @@
 namespace info {
 
   template<typename T>
-  class Builder {
+  class TypeBuilder {
 
     public:
 

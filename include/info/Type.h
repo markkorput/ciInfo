@@ -4,23 +4,23 @@
 #include <vector>
 #include <memory>
 #include "Port.hpp"
-#include "Builder.hpp"
+#include "TypeBuilder.hpp"
 #include "Instance.h"
 
 namespace info {
 
-  class Interface {
+  class Type {
     public:
 
       template<class T>
-      static std::shared_ptr<Interface> create(std::function<void(Builder<T>&)> func) {
-        Builder<T> builder;
+      static std::shared_ptr<Type> create(std::function<void(TypeBuilder<T>&)> func) {
+        TypeBuilder<T> builder;
 
         // let caller configure our builder
         func(builder);
 
         // create interface and populate with port defs from builder
-        auto interface = std::make_shared<Interface>();
+        auto interface = std::make_shared<Type>();
         interface->portDefRefs = builder.getPortDefs();
 
         return interface;
