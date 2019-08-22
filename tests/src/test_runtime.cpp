@@ -7,6 +7,21 @@
 #include "cinder/Signals.h"
 
 
+void initRuntime(info::Runtime& runtime) {
+  auto type = runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
+    builder.attr<bool>("value")
+      ->apply([](bool& instance, info::TypedPort<bool>& port) {
+        // when data comes in through the value-IN-port; apply that value
+        port.onDataIn([&instance, &port](const bool& val){
+          if (val == instance) return;
+          instance = val;
+            // immediately send the new value to the out port
+          port.dataOut(instance);
+        });
+      });
+  });
+}
+
 TEST_CASE("info::Runtime", ""){
 
   SECTION("addType"){
@@ -23,19 +38,7 @@ TEST_CASE("info::Runtime", ""){
 
   SECTION("createInstance"){
     info::Runtime runtime;
-
-    auto type = runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
-      builder.attr<bool>("value")
-        ->apply([](bool& instance, info::TypedPort<bool>& port) {
-          // when data comes in through the value-IN-port; apply that value
-          port.onDataIn([&instance, &port](const bool& val){
-            if (val == instance) return;
-            instance = val;
-             // immediately send the new value to the out port
-            port.dataOut(instance);
-          });
-        });
-    });
+    initRuntime(runtime);
 
     std::shared_ptr<info::Instance> instanceRef = runtime.createInstance("bool");
 

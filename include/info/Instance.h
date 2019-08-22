@@ -8,6 +8,9 @@
 
 namespace info {
 
+  class Instance;
+  typedef std::shared_ptr<Instance> InstanceRef;
+
   class Instance {
 
     public:
