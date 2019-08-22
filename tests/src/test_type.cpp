@@ -9,7 +9,7 @@
 class Keyboard {
   public:
     static std::shared_ptr<info::Type> createInfoType() {
-      return info::Type::create<Keyboard>([](info::TypeBuilder<Keyboard>& builder){
+      return info::Type::create<Keyboard>("Keyboard", [](info::TypeBuilder<Keyboard>& builder){
         builder.output<char>("KeyCode")
           ->apply([](Keyboard& instance, std::function<void(const char&)> out) {
             instance.keySignal.connect([out](char keycode){

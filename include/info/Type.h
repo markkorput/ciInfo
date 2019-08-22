@@ -13,17 +13,18 @@ namespace info {
     public:
 
       template<class T>
-      static std::shared_ptr<Type> create(std::function<void(TypeBuilder<T>&)> func) {
+      static std::shared_ptr<Type> create(const std::string &typeId, std::function<void(TypeBuilder<T>&)> func) {
         TypeBuilder<T> builder;
 
         // let caller configure our builder
         func(builder);
 
         // create interface and populate with port defs from builder
-        auto interface = std::make_shared<Type>();
-        interface->portDefRefs = builder.getPortDefs();
+        auto type = std::make_shared<Type>();
+        type->id = typeId;
+        type->portDefRefs = builder.getPortDefs();
 
-        return interface;
+        return type;
       }
 
     public:
@@ -42,11 +43,14 @@ namespace info {
 
     public:
 
+      const std::string& getId() const { return id; }
+
       const std::vector<std::shared_ptr<PortDef>>& getPorts() const {
         return portDefRefs;
       }
 
     private:
+      std::string id = "";
       std::vector<std::shared_ptr<PortDef>> portDefRefs;
   };
 
