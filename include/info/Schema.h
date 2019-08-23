@@ -172,6 +172,14 @@ namespace info {
         return ref;
       }
 
+      ImplementationRef getImplementation(const std::string& id) {
+        for(auto ref : implementationRefs) 
+          if(ref->id == id)
+            return ref;
+        return nullptr;
+      }
+
+
     public:
 
       std::vector<TypeRef> typeRefs;

@@ -29,7 +29,6 @@ namespace info {
         [&runtime, &schema, &id](TypeBuilder<Implementation>& builder) {
           Implementation::build(builder);
         });
-
     }
 
     return ref;
