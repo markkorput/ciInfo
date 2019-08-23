@@ -16,8 +16,6 @@ namespace info {
       template<typename V>
       std::shared_ptr<PortBuilder<T,V>> attr(const std::string& id) { return addPort<V>(id, Port::FLAG_INOUT); }
 
-      std::shared_ptr<PortBuilder<T,Void>> signal(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
-
       template<typename V>
       std::shared_ptr<PortBuilder<T,V>> input(const std::string& id) { return addPort<V>(id, Port::FLAG_IN); }
 
@@ -33,6 +31,10 @@ namespace info {
         // give the PortBuilder to the caller
         return ref;
       }
+
+      std::shared_ptr<PortBuilder<T,Void>> signalOut(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
+      std::shared_ptr<PortBuilder<T,Void>> signalIn(const std::string& id) { return addPort<Void>(id, Port::FLAG_IN); }
+      std::shared_ptr<PortBuilder<T,Void>> signal(const std::string& id) { return addPort<Void>(id, Port::FLAG_INOUT); }
 
       const std::vector<std::shared_ptr<PortDef>>& getPortDefs() const {
         return portDefRefs;

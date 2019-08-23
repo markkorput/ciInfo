@@ -179,7 +179,6 @@ namespace info {
         return nullptr;
       }
 
-
     public:
 
       std::vector<TypeRef> typeRefs;

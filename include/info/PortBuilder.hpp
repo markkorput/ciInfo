@@ -46,5 +46,11 @@ namespace info {
           logic(*(T*)instance, *(TypedPort<V>*)port);
         });
       }
+
+      void onDataIn(std::function<void(const V& v)> func) {
+        this->apply([func](T& instance, info::TypedPort<V>& port) {
+          port.onDataIn(func);
+        });
+      }
   };
 }

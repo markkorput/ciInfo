@@ -8,7 +8,7 @@
 #include "info/functions.h"
 
 void initFunctionsRuntime(info::Runtime& runtime) {
-  auto type = runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
+  runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
     builder.attr<bool>("value")
       ->apply([](bool& instance, info::TypedPort<bool>& port) {
         // when data comes in through the value-IN-port; apply that value
@@ -20,6 +20,22 @@ void initFunctionsRuntime(info::Runtime& runtime) {
         });
       });
   });
+
+  runtime.addType<std::string>("string", [](info::TypeBuilder<std::string>& builder){
+    builder.attr<std::string>("fire")
+      ->apply([](std::string& instance, info::TypedPort<std::string>& port) {
+        port.onInput([&instance, &port](){
+            port.dataOut(instance);
+        });
+      });
+  });
+
+  runtime.addType<bool>("Printer", [](info::TypeBuilder<bool>& builder){
+    builder.input<std::string>("print")
+      ->onDataIn([](const std::string& value){
+          std::cout << " ### PRINTER printing: " << value << std::endl;
+      });
+  });
 }
 
 void initSchema(info::Schema& schema) {
@@ -27,10 +43,10 @@ void initSchema(info::Schema& schema) {
   {
     auto app = schema.createImplementation("HelloWorldApp");
     auto messageInstance = app->createInstance("string", "Message");
-    auto printInstance = app->createInstance("print", "Printer");
+    auto printInstance = app->createInstance("Printer", "Printer");
 
     // create connection of the "fired" message to the printer
-    app->createConnection("fire", printInstance, "print");
+    app->createConnection(messageInstance, "fire", printInstance, "print");
 
     // create connection that "fires" the message
     app->createConnection(app, "start", messageInstance, "fire");
