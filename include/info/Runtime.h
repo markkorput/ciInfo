@@ -24,7 +24,7 @@ namespace info {
           return typeRef->template createInstance<T>(*object);
         };
 
-        return this->addType(typeId, instantiatorFunc, builderFunc);
+        return this->addType<T>(typeId, instantiatorFunc, builderFunc);
       }
 
       template<class T>

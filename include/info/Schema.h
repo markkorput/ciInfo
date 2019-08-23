@@ -172,9 +172,6 @@ namespace info {
         return ref;
       }
 
-
-
-
     public:
 
       std::vector<TypeRef> typeRefs;

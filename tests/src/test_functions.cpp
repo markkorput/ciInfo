@@ -47,7 +47,7 @@ TEST_CASE("info::functions", ""){
     info::Schema schema;
     info::RuntimeRef schemaRuntimeRef = mergeSchemaTypes(nativeRuntime, schema);
 
-    auto instanceRef = schemaRuntimeRef->createInstance("bool");
+    auto instanceRef = schemaRuntimeRef->createInstance("HelloWorldApp");
     REQUIRE(instanceRef != nullptr);
     REQUIRE(schemaRuntimeRef->getInstances().size() == 1);
     auto pStartPort = instanceRef->signalPort("start");
