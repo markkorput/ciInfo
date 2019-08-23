@@ -4,6 +4,7 @@
 #include <functional>
 #include "Runtime.h"
 #include "Schema.h"
+#include "Port.hpp"
 #include "Type.h"
 #include "Instance.h"
 #include "TypeBuilder.hpp"
@@ -13,7 +14,6 @@ namespace info {
     public:
 
       static InstanceRef instantiate(Runtime& runtime, Schema& schema, const std::string& implementationId, TypeRef typeRef) {
-
 
         Schema::ImplementationRef implRef = schema.getImplementation(implementationId);
         if (!implRef) return nullptr;
@@ -67,10 +67,9 @@ namespace info {
 
       static void build(TypeBuilder<Implementation>& builder) {
         // TODO create ports as defined in schema
-        builder.signalIn("start");
+        // builder.signalIn("start");
 
         builder.connect([](Implementation& imp, Instance& instance) {
-          //instance.signalPort("start")
           applySchemaConnections(imp, instance, imp.schemaImplementationRef);
         });
       }
@@ -93,6 +92,20 @@ namespace info {
 
     private:
 
+
+      static PortRef getPort(Implementation& implementation, Instance& instance, Schema::ImplementationRef implRef, Schema::ConnectionPoint& connectionPoint) {
+        if (connectionPoint.instance == implRef->id) {
+          return instance.getPort(connectionPoint.port);
+        }
+
+        auto pOutputInstance = implementation.findInstanceForSchemaId(connectionPoint.instance);
+        if (pOutputInstance) return pOutputInstance->getPort(connectionPoint.port);
+
+        std::cout << "Could not find port \"" << connectionPoint.port
+          << "\" for instance \"" << connectionPoint.instance << "\"" << std::endl;
+        return nullptr;
+      }
+
       static void applySchemaConnections(Implementation& implementation, Instance& instance, Schema::ImplementationRef implRef) {
         auto pImp = &implementation;
 
@@ -101,30 +114,8 @@ namespace info {
         //
 
         for(auto connectionRef : implRef->connections) {
-
-          //
-          // Get Instances
-          //
-
-          auto pOutputInstance = pImp->findInstanceForSchemaId(connectionRef->output.instance);
-          auto pInputInstance = pImp->findInstanceForSchemaId(connectionRef->input.instance);
-
-          if (!pOutputInstance) {
-            std::cout << "Could not apply schema connection because of missing output instance: " << connectionRef->output.instance << std::endl;
-            continue;
-          }
-
-          if (!pInputInstance) {
-            std::cout << "Could not apply schema connection because of missing input instance: " << connectionRef->input.instance << std::endl;
-            continue;
-          }
-
-          //
-          // Get Ports
-          //
-
-          auto outputPort = pOutputInstance->getPort(connectionRef->output.port);
-          auto inputPort = pInputInstance->getPort(connectionRef->input.port);
+          auto outputPort = getPort(implementation, instance, implRef, connectionRef->output);
+          auto inputPort = getPort(implementation, instance, implRef, connectionRef->input);
 
           if (!outputPort) {
             std::cout << "Could not connect schema instance because of missing output port: " << connectionRef->output.port << std::endl;

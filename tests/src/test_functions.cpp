@@ -66,9 +66,11 @@ TEST_CASE("info::functions", ""){
 
     info::RuntimeRef schemaRuntimeRef = mergeSchemaTypes(nativeRuntime, schema);
 
+    // std::cout << "before: " << schemaRuntimeRef->getInstances().size() << std::endl;
     auto instanceRef = schemaRuntimeRef->createInstance("HelloWorldApp");
+    // std::cout << "after: " << schemaRuntimeRef->getInstances().size() << std::endl;
     REQUIRE(instanceRef != nullptr);
-    REQUIRE(schemaRuntimeRef->getInstances().size() == 1);
+    REQUIRE(schemaRuntimeRef->getInstances().size() == 3); // The HellowWorldApp, the Printer and the string
     auto pStartPort = instanceRef->signalPort("start");
     REQUIRE(pStartPort != NULL);
     pStartPort->signalOut();

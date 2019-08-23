@@ -12,18 +12,18 @@ namespace info {
   // as well as new types added based on the implementations in the given schema
   RuntimeRef mergeSchemaTypes(Runtime& runtime, Schema& schema) {
     // create new runtime
-    auto ref = std::make_shared<Runtime>();
+    auto newRuntime = std::make_shared<Runtime>();
     // copy all existing types in the given runtime
-    Runtime::copyTypes(runtime, *ref);
+    Runtime::copyTypes(runtime, *newRuntime);
 
     for(auto implementationRef : schema.implementationRefs) {
       const std::string id = implementationRef->id;
 
       // add type to new runtime
-      ref->addType<Implementation>(id,
+      newRuntime->addType<Implementation>(id,
         // instantiator
-        [&runtime, &schema, &id](TypeRef typeRef) {
-          return Implementation::instantiate(runtime, schema, id, typeRef);
+        [newRuntime, &schema, &id](TypeRef typeRef) {
+          return Implementation::instantiate(*newRuntime, schema, id, typeRef);
         },
         // builder
         [&runtime, &schema, &id](TypeBuilder<Implementation>& builder) {
@@ -31,6 +31,6 @@ namespace info {
         });
     }
 
-    return ref;
+    return newRuntime;
   }
 }
