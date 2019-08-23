@@ -23,7 +23,7 @@ namespace info {
       ref->addType<Implementation>(id,
         // instantiator
         [&runtime, &schema, &id](TypeRef typeRef) {
-          return Implementation::instantiate(runtime, schema, id);
+          return Implementation::instantiate(runtime, schema, id, typeRef);
         },
         // builder
         [&runtime, &schema, &id](TypeBuilder<Implementation>& builder) {

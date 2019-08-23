@@ -31,9 +31,16 @@ namespace info {
         return port<Void>(portname);
       }
 
+      PortRef getPort(const std::string& portname) {
+        for(auto portRef : portRefs)
+          if (portRef->getId() == portname)
+            return portRef;
+        return nullptr;
+      }
+
     public:
 
-      std::vector<std::shared_ptr<Port>> portRefs;
+      std::vector<PortRef> portRefs;
   };
 
 }

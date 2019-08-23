@@ -4,9 +4,13 @@
 // #include "ciCMS/cfg/Cfg.h"
 #include <stdlib.h>
 #include <string>
+#include <memory>
 #include "cinder/Signals.h"
 
 namespace info {
+
+  class Port;
+  typedef std::shared_ptr<Port> PortRef;
 
   class Port {
     public:
@@ -21,7 +25,7 @@ namespace info {
 
       Port(const std::string& id, const std::string& type, int flags = FLAG_INOUT) : id(id), type(type), flags(flags) {
       }
-  
+
     public:
       const std::string& getId() const { return id; }
       const std::string& getType() const { return type; }
@@ -50,6 +54,15 @@ namespace info {
 
       cinder::signals::Connection onOutput(InFuncNoArg func) {
         return outSignal.connect(toVoid(func));
+      }
+
+      cinder::signals::Connection outputTo(Port& inputPort, bool performTypeCheck = false) {
+        // return dummy connection if types don't match. TODO; log warning?
+        if (performTypeCheck && inputPort.type != this->type) return cinder::signals::Connection();
+
+        return outSignal.connect([&inputPort](const void* arg){
+          inputPort.inSignal.emit(arg);
+        });
       }
 
     protected:

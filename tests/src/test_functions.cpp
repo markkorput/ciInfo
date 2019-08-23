@@ -45,6 +45,8 @@ TEST_CASE("info::functions", ""){
     initFunctionsRuntime(nativeRuntime);
 
     info::Schema schema;
+    initSchema(schema);
+
     info::RuntimeRef schemaRuntimeRef = mergeSchemaTypes(nativeRuntime, schema);
 
     auto instanceRef = schemaRuntimeRef->createInstance("HelloWorldApp");
