@@ -48,7 +48,8 @@ void initSchema(info::Schema& schema) {
     // create connection of the "fired" message to the printer
     app->createConnection(messageInstance, "fire", printInstance, "print");
 
-    // create connection that "fires" the message
+    // create connection that "fires" the message; empty outputInstance
+    // means; use an app input Port
     app->createConnection(app, "start", messageInstance, "fire");
   }
 }

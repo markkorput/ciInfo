@@ -26,6 +26,7 @@ namespace info {
         auto type = std::make_shared<Type>();
         type->id = typeId;
         type->portDefRefs = builder.getPortDefs();
+        type->instanceConnectFuncs = builder.getInstanceConnectFuncs();
 
         return type;
       }
@@ -46,6 +47,10 @@ namespace info {
         });
 
         auto instanceRef = std::make_shared<Instance>(ports, cleanupFunc);
+        
+        for(auto func : instanceConnectFuncs)
+          func((void*)&instance, *instanceRef);
+
         return instanceRef;
       }
 
@@ -60,6 +65,7 @@ namespace info {
     private:
       std::string id = "";
       std::vector<std::shared_ptr<PortDef>> portDefRefs;
+      std::vector<std::function<void(void*, Instance&)>> instanceConnectFuncs;
   };
 
 }

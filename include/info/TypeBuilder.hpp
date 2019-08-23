@@ -4,6 +4,7 @@
 #include "Port.hpp"
 #include "PortDef.h"
 #include "PortBuilder.hpp"
+#include "Instance.h"
 #include "Void.h"
 
 namespace info {
@@ -12,6 +13,8 @@ namespace info {
   class TypeBuilder {
 
     public:
+
+      typedef std::function<void(void*, Instance&)> InstanceConnectFunc;
 
       template<typename V>
       std::shared_ptr<PortBuilder<T,V>> attr(const std::string& id) { return addPort<V>(id, Port::FLAG_INOUT); }
@@ -40,7 +43,19 @@ namespace info {
         return portDefRefs;
       };
 
+      const std::vector<InstanceConnectFunc> getInstanceConnectFuncs() const {
+        return instanceConnectFuncs;
+      }
+
+      void connect(std::function<void(T& obj, Instance&)> func) {
+        instanceConnectFuncs.push_back([func](void* obj, Instance& inst){
+          func(*(T*)obj, inst);
+        });
+      }
+
+
     private:
       std::vector<std::shared_ptr<PortDef>> portDefRefs;
+      std::vector<InstanceConnectFunc> instanceConnectFuncs;
   };
 }

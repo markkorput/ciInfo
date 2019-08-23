@@ -77,28 +77,28 @@ namespace info {
             return ref;
           }
 
-          /// creates connection from an outputPort of this implementation to an input of an instance inside the implementation
-          ConnectionRef createConnection(const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
-            auto ref = std::make_shared<info::Schema::Connection>();
+          // /// creates connection from an outputPort of this implementation to an input of an instance inside the implementation
+          // ConnectionRef createConnection(const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
+          //   auto ref = std::make_shared<info::Schema::Connection>();
 
-            ref->id = nextConnectionId;
-            nextConnectionId++;
+          //   ref->id = nextConnectionId;
+          //   nextConnectionId++;
 
-            { // output
-              ref->output.instance = this->id;
-              ref->output.port = outputPort;
-              ref->output.order = nextOrderForOutputConnections(*(Instance*)this, outputPort);
-            }
+          //   { // output
+          //     ref->output.instance = this->id;
+          //     ref->output.port = outputPort;
+          //     ref->output.order = nextOrderForOutputConnections(*(Instance*)this, outputPort);
+          //   }
 
-            { // input
-              ref->input.instance = inputInstance->id;
-              ref->input.port = inputPort;
-              ref->output.order = nextOrderForInputConnections(*(Instance*)this, outputPort);
-            }
+          //   { // input
+          //     ref->input.instance = inputInstance->id;
+          //     ref->input.port = inputPort;
+          //     ref->output.order = nextOrderForInputConnections(*(Instance*)this, outputPort);
+          //   }
 
-            connections.push_back(ref);
-            return ref;
-          }
+          //   connections.push_back(ref);
+          //   return ref;
+          // }
 
           ConnectionRef createConnection(InstanceRef outputInstance, const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
             auto ref = std::make_shared<info::Schema::Connection>();

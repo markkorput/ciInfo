@@ -23,6 +23,7 @@ namespace info {
         //
 
         auto pImp = new Implementation();
+        pImp->schemaImplementationRef = implRef;
 
         //
         // Instantiate all instances in the implementation
@@ -60,6 +61,41 @@ namespace info {
 
         // ...
 
+
+        return typeRef->template createInstance<Implementation>(*pImp, true /* delete pImp when instance expires */);
+      }
+
+      static void build(TypeBuilder<Implementation>& builder) {
+        // TODO create ports as defined in schema
+        builder.signalIn("start");
+
+        builder.connect([](Implementation& imp, Instance& instance) {
+          //instance.signalPort("start")
+          applySchemaConnections(imp, instance, imp.schemaImplementationRef);
+        });
+      }
+
+    public:
+
+      ~Implementation() {
+        for(auto conn : signalConnections)
+          conn.disconnect();
+        signalConnections.clear();
+
+        for(auto func : cleanupFuncs) {
+          func();
+        }
+        cleanupFuncs.clear();
+
+        schemaIdToInstanceMap.clear();
+        instanceRefs.clear();
+      }
+
+    private:
+
+      static void applySchemaConnections(Implementation& implementation, Instance& instance, Schema::ImplementationRef implRef) {
+        auto pImp = &implementation;
+
         //
         // Apply all connections in this implementation
         //
@@ -74,12 +110,12 @@ namespace info {
           auto pInputInstance = pImp->findInstanceForSchemaId(connectionRef->input.instance);
 
           if (!pOutputInstance) {
-            std::cout << "Could not apply schema because of missing output instance: " << connectionRef->output.instance << std::endl;
+            std::cout << "Could not apply schema connection because of missing output instance: " << connectionRef->output.instance << std::endl;
             continue;
           }
 
           if (!pInputInstance) {
-            std::cout << "Could not apply schema because of missing input instance: " << connectionRef->input.instance << std::endl;
+            std::cout << "Could not apply schema connection because of missing input instance: " << connectionRef->input.instance << std::endl;
             continue;
           }
 
@@ -107,36 +143,11 @@ namespace info {
           auto signalConnection = outputPort->outputTo(*inputPort, true /* check type */);
           pImp->signalConnections.push_back(signalConnection);
         }
-
-        return typeRef->template createInstance<Implementation>(*pImp, true /* delete pImp when instance expires */);
       }
-
-      static void build(TypeBuilder<Implementation>& builder) {
-        // creates our input and output ports
-      }
-
-    public:
-
-      ~Implementation() {
-        for(auto conn : signalConnections)
-          conn.disconnect();
-        signalConnections.clear();
-
-        for(auto func : cleanupFuncs) {
-          func();
-        }
-        cleanupFuncs.clear();
-
-        schemaIdToInstanceMap.clear();
-        instanceRefs.clear();
-      }
-
-    private:
-
       Instance* findInstanceForSchemaId(const Schema::Id& id) {
         auto it = schemaIdToInstanceMap.find(id);
-        if (it == schemaIdToInstanceMap.end()) return NULL;
-        return it->second;
+        if (it != schemaIdToInstanceMap.end()) return it->second;
+        return NULL;
       }
 
     private:
@@ -144,5 +155,7 @@ namespace info {
       std::vector<InstanceRef> instanceRefs;
       std::vector<cinder::signals::Connection> signalConnections;
       std::vector<std::function<void()>> cleanupFuncs;
+
+      Schema::ImplementationRef schemaImplementationRef = nullptr;
   };
 }
