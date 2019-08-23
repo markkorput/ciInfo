@@ -23,7 +23,6 @@ void initRuntime(info::Runtime& runtime) {
 }
 
 TEST_CASE("info::Runtime", ""){
-
   SECTION("addType"){
     info::Runtime runtime;
 

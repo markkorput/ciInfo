@@ -9,6 +9,9 @@
 
 namespace info {
 
+  class Type;
+  typedef std::shared_ptr<Type> TypeRef;
+
   class Type {
     public:
 
