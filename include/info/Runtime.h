@@ -21,7 +21,7 @@ namespace info {
       std::shared_ptr<Type> addType(const std::string& typeId, std::function<void(TypeBuilder<T>&)> builderFunc) {
         InstantiatorFunc instantiatorFunc = [](TypeRef typeRef){
           auto object = new T();
-          return typeRef->template createInstance<T>(*object);
+          return typeRef->template createInstance<T>(*object, true /* make sure object is deleted when instance expires */);
         };
 
         return this->addType<T>(typeId, instantiatorFunc, builderFunc);
@@ -33,9 +33,6 @@ namespace info {
         typeRefs.push_back(typeRef);
 
         typeInstantiatorFuncs[typeRef.get()] = instantiatorFunc;
-
-        std::cout << "TODO: also register an on destroy func" << std::endl;
-
         return typeRef;
       }
 

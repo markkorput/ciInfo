@@ -108,7 +108,7 @@ namespace info {
           pImp->signalConnections.push_back(signalConnection);
         }
 
-        return typeRef->template createInstance<Implementation>(*pImp);
+        return typeRef->template createInstance<Implementation>(*pImp, true /* delete pImp when instance expires */);
       }
 
       static void build(TypeBuilder<Implementation>& builder) {

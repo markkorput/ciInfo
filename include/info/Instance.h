@@ -15,7 +15,14 @@ namespace info {
 
     public:
 
-      Instance(std::vector<std::shared_ptr<Port>> ports) : portRefs(ports) {
+      Instance(std::vector<std::shared_ptr<Port>> ports, std::function<void()> cleanupFunc = nullptr) : portRefs(ports), cleanupFunc(cleanupFunc) {
+      }
+
+      ~Instance() {
+        if (this->cleanupFunc) {
+          cleanupFunc();
+          cleanupFunc = nullptr;
+        }
       }
 
       template<typename V>
@@ -41,6 +48,7 @@ namespace info {
     public:
 
       std::vector<PortRef> portRefs;
+      std::function<void()> cleanupFunc;
   };
 
 }

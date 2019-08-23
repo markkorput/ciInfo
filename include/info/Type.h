@@ -34,13 +34,18 @@ namespace info {
 
       // configure an instance with the given Cfg
       template<class T>
-      std::shared_ptr<Instance> createInstance(T& instance) {
+      std::shared_ptr<Instance> createInstance(T& instance, bool manageObject = false) {
         std::vector<std::shared_ptr<Port>> ports;
 
         for(auto portDefRef : portDefRefs)
           ports.push_back(portDefRef->createPortFor(instance));
 
-        auto instanceRef = std::make_shared<Instance>(ports);
+        T* p = &instance;
+        auto cleanupFunc = (manageObject == false ? (std::function<void()>)nullptr : (std::function<void()>)[p](){
+          delete p;
+        });
+
+        auto instanceRef = std::make_shared<Instance>(ports, cleanupFunc);
         return instanceRef;
       }
 
