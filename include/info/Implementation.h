@@ -13,7 +13,7 @@ namespace info {
   class Implementation {
     public:
 
-      static InstanceRef instantiate(Runtime& runtime, Schema& schema, const std::string& implementationId, TypeRef typeRef) {
+      static InstanceRef instantiate(Runtime& runtime, Schema& schema, const Schema::Id& implementationId, TypeRef typeRef) {
 
         Schema::ImplementationRef implRef = schema.getImplementation(implementationId);
         if (!implRef) return nullptr;
@@ -23,7 +23,6 @@ namespace info {
         //
 
         auto pImp = new Implementation();
-        pImp->schemaImplementationRef = implRef;
 
         //
         // Instantiate all instances in the implementation
@@ -65,12 +64,25 @@ namespace info {
         return typeRef->template createInstance<Implementation>(*pImp, true /* delete pImp when instance expires */);
       }
 
-      static void build(TypeBuilder<Implementation>& builder) {
+      static void build(TypeBuilder<Implementation>& builder, Runtime& runtime, Schema& schema, const Schema::Id& implementationId) {
+        Schema::ImplementationRef implRef = schema.getImplementation(implementationId);
+        if (!implRef) return;
+
+        auto typeRef = schema.getType(implRef->typeId);
+
+        for(auto port : typeRef->inputs) {
+          builder.signalIn(port->id);
+        }
+
+        for(auto port : typeRef->outputs) {
+          builder.signalOut(port->id);
+        }
+
         // TODO create ports as defined in schema
         // builder.signalIn("start");
 
-        builder.connect([](Implementation& imp, Instance& instance) {
-          applySchemaConnections(imp, instance, imp.schemaImplementationRef);
+        builder.connect([implRef](Implementation& imp, Instance& instance) {
+          applySchemaConnections(imp, instance, implRef);
         });
       }
 
@@ -146,7 +158,5 @@ namespace info {
       std::vector<InstanceRef> instanceRefs;
       std::vector<cinder::signals::Connection> signalConnections;
       std::vector<std::function<void()>> cleanupFuncs;
-
-      Schema::ImplementationRef schemaImplementationRef = nullptr;
   };
 }

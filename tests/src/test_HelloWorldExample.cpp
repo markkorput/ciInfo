@@ -7,7 +7,7 @@
 #include "info/Schema.h"
 #include "info/functions.h"
 
-void initFunctionsRuntime(info::Runtime& runtime) {
+void initHellowWorldNativeRuntime(info::Runtime& runtime) {
   runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
     builder.attr<bool>("value")
       ->apply([](bool& instance, info::TypedPort<bool>& port) {
@@ -38,7 +38,7 @@ void initFunctionsRuntime(info::Runtime& runtime) {
   });
 }
 
-void initSchema(info::Schema& schema) {
+void initHelloWorldSchema(info::Schema& schema) {
   auto app = schema.createImplementation("HelloWorldApp");
   auto messageInstance = schema.createInstance(app, "string", "Message");
   auto printInstance = schema.createInstance(app, "Printer", "Printer");
@@ -50,14 +50,14 @@ void initSchema(info::Schema& schema) {
   schema.createConnection(app, "start", messageInstance, "fire");
 }
 
-TEST_CASE("info::functions", ""){
-  SECTION("createSchemaInstance") {
+TEST_CASE("Examples", ""){
+  SECTION("HelloWorld") {
     // main
     info::Runtime nativeRuntime;
-    initFunctionsRuntime(nativeRuntime);
+    initHellowWorldNativeRuntime(nativeRuntime);
 
     info::Schema schema;
-    initSchema(schema);
+    initHelloWorldSchema(schema);
 
     info::RuntimeRef schemaRuntimeRef = mergeSchemaTypes(nativeRuntime, schema);
 

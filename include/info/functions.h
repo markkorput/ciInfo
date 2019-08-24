@@ -25,9 +25,10 @@ namespace info {
         [newRuntime, &schema, &id](TypeRef typeRef) {
           return Implementation::instantiate(*newRuntime, schema, id, typeRef);
         },
+
         // builder
-        [&runtime, &schema, &id](TypeBuilder<Implementation>& builder) {
-          Implementation::build(builder);
+        [newRuntime, &schema, &id](TypeBuilder<Implementation>& builder) {
+          Implementation::build(builder, *newRuntime, schema, id);
         });
     }
 
