@@ -21,14 +21,14 @@ namespace info {
     public:
       const static int FLAG_IN = 1;
       const static int FLAG_OUT = (1 << 1);
-      const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
+      // const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
       
       typedef std::function<void(const void*)> InFuncVoid;
       typedef std::function<void()> InFuncNoArg;
 
     public: // constructor
 
-      Port(const std::string& id, const std::string& type, int flags = FLAG_INOUT) : id(id), type(type), flags(flags) {
+      Port(const std::string& id, const std::string& type, int flags = FLAG_IN) : id(id), type(type), flags(flags) {
       }
 
     public: // get methods
@@ -119,7 +119,7 @@ namespace info {
       typedef std::function<void(const V&)> InFuncTypeRef;
 
     public:
-      TypedPort(const std::string& id, int flags = Port::FLAG_INOUT) : Port(id, typeid(V).name(), flags) {
+      TypedPort(const std::string& id, int flags = Port::FLAG_IN) : Port(id, typeid(V).name(), flags) {
       }
 
       // void dataIn(const V& val) {

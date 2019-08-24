@@ -37,6 +37,8 @@ namespace info {
 
     public:
 
+      using Signal = Port::Signal;
+
       PortBuilder(const std::string& id, int flags)
         : PortBuilderBase(
             std::make_shared<PortDef>(id, typeid(V).name(), flags)) {}
@@ -68,6 +70,52 @@ namespace info {
       void onData(std::function<void(const V& v)> func) {
         this->apply([func](T& instance, info::TypedPort<V>& port) {
           port.onData(func);
+        });
+      }
+
+      void apply(Port::Signal& signal) {
+        if (portDefRef->isInput())
+          this->apply([](T& instance, Port& port) {
+              port.outputTo(instance.fireSignal);
+          });
+
+        if (portDefRef->isOutput())
+          this->apply([](T& instance, Port& port) {
+              port.inputFrom(instance.fireSignal);
+          });
+      }
+
+      // member signal
+      template<class TT>
+      void apply(Signal TT::*memberSignal) {
+        this->apply([memberSignal](TT& instance, Port& port) {
+          if (port.isInput())
+            port.outputTo((instance.*memberSignal));
+
+          if (port.isOutput())
+            port.inputFrom((instance.*memberSignal));
+        });
+      }
+
+      // argument-less members function
+      template<class TT>
+      void apply(void (TT::*memberFunction) (void)) {
+        this->apply([memberFunction](TT& instance, Port& port) {
+          if (port.isOutput())
+            std::cout << "WARNING; binding output port to member function, this might give unexpected results." << std::endl; 
+          
+          port.onSignal([&instance, memberFunction](){ (instance.*memberFunction)(); });
+        });
+      }
+
+      // argument-less members function
+      template<class TT>
+      void apply(void (TT::*memberFunction) (const V&)) {
+        this->apply([memberFunction](TT& instance, Port& port) {
+          if (port.isOutput())
+            std::cout << "WARNING; binding output port to member function, this might give unexpected results." << std::endl; 
+          
+          port.onData<V>([&instance, memberFunction](const V& val){ (instance.*memberFunction)(val); });
         });
       }
   };

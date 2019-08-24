@@ -22,26 +22,21 @@ namespace info { namespace components {
 
           // INPUTS
 
-          builder.template input<V>("value")
-            ->apply([](Value<V>& instance, Port& port) {
-              port.onData<V>([&instance](const V& v){
-                instance.set(v);
-              });
-            });
+          // connect input port to member method WITH argument
+          builder.template input<V>("value")->apply(&Value<V>::set);
 
-          builder.addInPort("fire")
-            ->apply([](Value<V>& instance, Port& port) {
-              port.onSignal([&instance]() {
-                instance.fire();
-              });
-            });
+          // connect input port to argumentless member method
+          builder.addInPort("fire")->apply(&Value<V>::fire);
+          builder.addInPort("reset")->apply(&Value<V>::reset);
 
           // OUTPUTS
 
-          builder.template output<V>("fire")
-            ->apply([](Value<V>& instance, Port& port) {
-              port.inputFrom(instance.fireSignal);
-            });
+          // connect output ports to member signals
+          builder.template output<V>("set")->apply(&Value<V>::initSignal);
+          builder.template output<V>("change")->apply(&Value<V>::changeSignal);
+          builder.template output<V>("init")->apply(&Value<V>::initSignal);
+          builder.template output<V>("reset")->apply(&Value<V>::resetSignal);
+          builder.template output<V>("fire")->apply(&Value<V>::fireSignal);
         };
       }
 
@@ -61,7 +56,7 @@ namespace info { namespace components {
         value = v;
         setSignal.emit(&value);
 
-        if (init) initializeSignal.emit(&value);
+        if (init) initSignal.emit(&value);
         if (change) changeSignal.emit(&value);
       }
 
@@ -79,7 +74,7 @@ namespace info { namespace components {
     public:
       Port::Signal setSignal;
       Port::Signal changeSignal;
-      Port::Signal initializeSignal;
+      Port::Signal initSignal;
       Port::Signal resetSignal;
       Port::Signal fireSignal;
 
