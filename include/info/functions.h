@@ -17,18 +17,17 @@ namespace info {
     Runtime::copyTypes(runtime, *newRuntime);
 
     for(auto implementationRef : schema.implementationRefs) {
-      const std::string id = implementationRef->id;
-
       // add type to new runtime
-      newRuntime->addType<Implementation>(id,
+      newRuntime->addType<Implementation>(implementationRef->id,
         // instantiator
-        [newRuntime, &schema, &id](TypeRef typeRef) {
-          return Implementation::instantiate(*newRuntime, schema, id, typeRef);
+        [newRuntime, &schema, implementationRef](TypeRef typeRef) {
+          auto instanceRef = Implementation::instantiate(*newRuntime, schema, implementationRef->id, typeRef);
+          return instanceRef;
         },
 
         // builder
-        [newRuntime, &schema, &id](TypeBuilder<Implementation>& builder) {
-          Implementation::build(builder, *newRuntime, schema, id);
+        [&schema, implementationRef](TypeBuilder<Implementation>& builder) {
+          Implementation::build(builder, schema, implementationRef->id);
         });
     }
 

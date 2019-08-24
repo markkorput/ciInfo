@@ -67,12 +67,16 @@ TEST_CASE("Examples", ""){
     // std::cout << "before: " << schemaRuntimeRef->getInstances().size() << std::endl;
     auto instanceRef = schemaRuntimeRef->createInstance("HelloWorldApp");
     // std::cout << "after: " << schemaRuntimeRef->getInstances().size() << std::endl;
-    REQUIRE(instanceRef != nullptr);
     REQUIRE(schemaRuntimeRef->getInstances().size() == 3); // The HellowWorldApp, the Printer and the string
+    REQUIRE(instanceRef != nullptr);
+    
     auto pStartPort = instanceRef->signalPort("start");
     REQUIRE(pStartPort != NULL);
-    pStartPort->signalOut();
+    pStartPort->signalIn();
     REQUIRE(printedValues.size() == 1);
     REQUIRE(printedValues[0] == "Hello World!");
+    pStartPort->signalIn();
+    pStartPort->signalIn();
+    REQUIRE(printedValues.size() == 3);
   }
 }
