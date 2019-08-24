@@ -16,7 +16,7 @@ namespace info {
       class Port {
         public:
           Id id;
-          Id type;
+          Id typeId;
       };
 
       typedef std::shared_ptr<Port> PortRef;
@@ -33,7 +33,7 @@ namespace info {
       class Instance {
         public:
           Id id;
-          Id type;
+          Id typeId;
           std::string name;
       };
 
@@ -41,8 +41,8 @@ namespace info {
 
       class ConnectionPoint {
         public:
-          Id instance;
-          Id port;
+          Id instanceId;
+          Id portId;
           int order;
       };
 
@@ -55,8 +55,11 @@ namespace info {
 
       typedef std::shared_ptr<Connection> ConnectionRef;
 
-      class Implementation : public Instance {
+      class Implementation {
         public:
+          Id id;
+          Id typeId;
+        
           std::vector<InstanceRef> instances;
           std::vector<ConnectionRef> connections;
 
@@ -71,62 +74,58 @@ namespace info {
             ref->id = std::to_string(nextInstanceId);
             nextInstanceId++;
 
-            ref->type = type;
+            ref->typeId = type;
             ref->name = name;
             instances.push_back(ref);
             return ref;
           }
 
-          // /// creates connection from an outputPort of this implementation to an input of an instance inside the implementation
-          // ConnectionRef createConnection(const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
-          //   auto ref = std::make_shared<info::Schema::Connection>();
-
-          //   ref->id = nextConnectionId;
-          //   nextConnectionId++;
-
-          //   { // output
-          //     ref->output.instance = this->id;
-          //     ref->output.port = outputPort;
-          //     ref->output.order = nextOrderForOutputConnections(*(Instance*)this, outputPort);
-          //   }
-
-          //   { // input
-          //     ref->input.instance = inputInstance->id;
-          //     ref->input.port = inputPort;
-          //     ref->output.order = nextOrderForInputConnections(*(Instance*)this, outputPort);
-          //   }
-
-          //   connections.push_back(ref);
-          //   return ref;
-          // }
-
           ConnectionRef createConnection(InstanceRef outputInstance, const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
-            auto ref = std::make_shared<info::Schema::Connection>();
+            return createConnection(
+              outputInstance->id,
+              outputPort,
+              nextOrderForOutputConnections(outputInstance->id, outputPort),
+              inputInstance->id,
+              inputPort,
+              nextOrderForInputConnections(inputInstance->id, inputPort)
+            );
+          }
 
-            ref->id = nextConnectionId;
-            nextConnectionId++;
-
-            { // output
-              ref->output.instance = outputInstance->id;
-              ref->output.port = outputPort;
-              ref->output.order = nextOrderForOutputConnections(*outputInstance, outputPort);
-            }
-
-            { // input
-              ref->input.instance = inputInstance->id;
-              ref->input.port = inputPort;
-              ref->output.order = nextOrderForInputConnections(*outputInstance, outputPort);
-            }
-
-            connections.push_back(ref);
-            return ref;
+          ConnectionRef createConnection(const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
+            return createConnection(
+              this->id,
+              outputPort,
+              nextOrderForOutputConnections(this->id, outputPort),
+              inputInstance->id,
+              inputPort,
+              nextOrderForInputConnections(inputInstance->id, outputPort)
+            );
           }
 
         protected:
 
-          int nextOrderForOutputConnections(Instance& instance, const Id& port) {
+          ConnectionRef createConnection(const Id& outId, const Id& outPortId, int outOrder, const Id& inId, const Id& inPortId, int inOrder) {
+            auto ref = std::make_shared<info::Schema::Connection>();
+
+            { // output
+              ref->output.instanceId = outId;
+              ref->output.portId = outPortId;
+              ref->output.order = outOrder;
+            }
+
+            { // input
+              ref->input.instanceId = inId;
+              ref->input.portId = inPortId;
+              ref->output.order = inOrder;
+            }
+
+            connections.push_back(ref);
+            return ref;
+          } 
+
+          int nextOrderForOutputConnections(const Id& instanceId, const Id& port) {
             std::vector<ConnectionRef> conns;
-            loadOutputConnections(instance, port, conns);
+            loadOutputConnections(instanceId, port, conns);
 
             int max = -1;
             for(auto conn : conns)
@@ -135,9 +134,9 @@ namespace info {
             return max+1;
           }
 
-          int nextOrderForInputConnections(Instance& instance, const Id& port) {
+          int nextOrderForInputConnections(const Id& instanceId, const Id& port) {
             std::vector<ConnectionRef> conns;
-            loadInputConnections(instance, port, conns);
+            loadInputConnections(instanceId, port, conns);
 
             int max = -1;
             for(auto conn : conns)
@@ -146,16 +145,15 @@ namespace info {
             return max+1;
           }
 
-
-          void loadOutputConnections(Instance& instance, const Id& port, std::vector<ConnectionRef>& target) {
+          void loadOutputConnections(const Id& instanceId, const Id& port, std::vector<ConnectionRef>& target) {
             for(auto connRef : connections)
-              if (connRef->output.instance == instance.id && connRef->output.port == port)
+              if (connRef->output.instanceId == instanceId && connRef->output.portId == port)
                 target.push_back(connRef);
           }
 
-          void loadInputConnections(Instance& instance, const Id& port, std::vector<ConnectionRef>& target) {
+          void loadInputConnections(const Id& instanceId, const Id& port, std::vector<ConnectionRef>& target) {
             for(auto connRef : connections)
-              if (connRef->input.instance == instance.id && connRef->input.port == port)
+              if (connRef->input.instanceId == instanceId && connRef->input.portId == port)
                 target.push_back(connRef);
           }
       };
@@ -165,10 +163,20 @@ namespace info {
     public:
 
       ImplementationRef createImplementation(const Id& id) {
+        // an implementation with this ID already exists
+        if (getImplementation(id)) return nullptr;
+
+        // create type
+        auto typeRef = std::make_shared<Type>();
+        typeRef->id = id;
+        this->typeRefs.push_back(typeRef);
+
+        // create implementation
         auto ref = std::make_shared<info::Schema::Implementation>();
         implementationRefs.push_back(ref);
-
         ref->id = id;
+        ref->typeId = typeRef->id;
+
         return ref;
       }
 

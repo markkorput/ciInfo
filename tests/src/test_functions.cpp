@@ -39,23 +39,18 @@ void initFunctionsRuntime(info::Runtime& runtime) {
 }
 
 void initSchema(info::Schema& schema) {
-  //schema.root().add("HellowWorldApp");
-  {
-    auto app = schema.createImplementation("HelloWorldApp");
-    auto messageInstance = app->createInstance("string", "Message");
-    auto printInstance = app->createInstance("Printer", "Printer");
+  auto app = schema.createImplementation("HelloWorldApp");
+  auto messageInstance = app->createInstance("string", "Message");
+  auto printInstance = app->createInstance("Printer", "Printer");
 
-    // create connection of the "fired" message to the printer
-    app->createConnection(messageInstance, "fire", printInstance, "print");
+  // create connection of the "fired" message to the printer
+  app->createConnection(messageInstance, "fire", printInstance, "print");
 
-    // create connection that "fires" the message; empty outputInstance
-    // means; use an app input Port
-    app->createConnection(app, "start", messageInstance, "fire");
-  }
+  // create connection that "fires" the message when the app's input "start" port is triggered
+  app->createConnection("start", messageInstance, "fire");
 }
 
 TEST_CASE("info::functions", ""){
-
   SECTION("createSchemaInstance") {
     // main
     info::Runtime nativeRuntime;

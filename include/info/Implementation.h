@@ -31,7 +31,7 @@ namespace info {
 
         for(auto schemaInstanceRef : implRef->instances) {
           // or fetch Schema::Type by typeId and grab??
-          std::string typ = schemaInstanceRef->type;
+          std::string typ = schemaInstanceRef->typeId;
           // create runtime instance for the type specified in the schema instance
           auto instanceRef = runtime.createInstance(typ);
           // skip the rest if this type is not supported by the runtime
@@ -94,15 +94,15 @@ namespace info {
 
 
       static PortRef getPort(Implementation& implementation, Instance& instance, Schema::ImplementationRef implRef, Schema::ConnectionPoint& connectionPoint) {
-        if (connectionPoint.instance == implRef->id) {
-          return instance.getPort(connectionPoint.port);
+        if (connectionPoint.instanceId == implRef->id) {
+          return instance.getPort(connectionPoint.portId);
         }
 
-        auto pOutputInstance = implementation.findInstanceForSchemaId(connectionPoint.instance);
-        if (pOutputInstance) return pOutputInstance->getPort(connectionPoint.port);
+        auto pOutputInstance = implementation.findInstanceForSchemaId(connectionPoint.instanceId);
+        if (pOutputInstance) return pOutputInstance->getPort(connectionPoint.portId);
 
-        std::cout << "Could not find port \"" << connectionPoint.port
-          << "\" for instance \"" << connectionPoint.instance << "\"" << std::endl;
+        std::cout << "Could not find port \"" << connectionPoint.portId
+          << "\" for instance \"" << connectionPoint.instanceId << "\"" << std::endl;
         return nullptr;
       }
 
@@ -118,12 +118,12 @@ namespace info {
           auto inputPort = getPort(implementation, instance, implRef, connectionRef->input);
 
           if (!outputPort) {
-            std::cout << "Could not connect schema instance because of missing output port: " << connectionRef->output.port << std::endl;
+            std::cout << "Could not connect schema instance because of missing output port: " << connectionRef->output.portId << std::endl;
             continue;
           }
 
           if (!inputPort) {
-            std::cout << "Could not connect schema instance because of missing input port: " << connectionRef->input.port << std::endl;
+            std::cout << "Could not connect schema instance because of missing input port: " << connectionRef->input.portId << std::endl;
             continue;
           }
 
