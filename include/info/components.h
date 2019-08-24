@@ -40,29 +40,24 @@ namespace info {
     // string-to-...
     components::Conversion<std::string, int>::addToRuntime(runtime, "string_to_int", 
       [](std::string val){
-        try {
-          return std::stoi(val);
-        } catch(std::invalid_argument exc){
-          // std::cerr << exc.what();
-        }
+        return std::stoi(val);
       });
 
     components::Conversion<std::string, float>::addToRuntime(runtime, "string_to_float", 
       [](std::string val){
-        try {
-          return std::stof(val);
-        } catch(std::invalid_argument exc){
-          // std::cerr << exc.what();
-        }
+        return std::stof(val);
       });
 
     components::Conversion<std::string, bool>::addToRuntime(runtime, "string_to_bool", 
-      [](std::string val){
+      [](const std::string& val, bool& out){
         try {
-          return boost::lexical_cast<bool>(val);
+          out = boost::lexical_cast<bool>(val);
         } catch(boost::bad_lexical_cast exc){
           // std::cerr << exc.what();
+          return false;
         }
+
+        return true;
       });
   }
 
