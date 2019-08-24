@@ -9,15 +9,11 @@ namespace info {
   class PortDef {
     public:
 
-      const static int FLAG_IN = 1;
-      const static int FLAG_OUT = (1 >> 1);
-      const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
-
       typedef std::function<void(void*, Port*)> ConnectorFunc;
 
     public:
 
-      PortDef(const std::string& id, const std::string& type, int flags = FLAG_INOUT) : id(id), type(type), flags(flags) {
+      PortDef(const std::string& id, const std::string& type, int flags = Port::FLAG_IN) : id(id), type(type), flags(flags) {
       }
   
     public:
@@ -25,6 +21,8 @@ namespace info {
       const std::string& getId() const { return id; }
       const std::string& getType() const { return type; }
       int getFlags() const { return flags; }
+      bool isInput() { return flags & Port::FLAG_IN; }
+      bool isOutput() { return flags & Port::FLAG_OUT; }
 
       void addConnector(ConnectorFunc func) {
         connectorFuncs.push_back(func);

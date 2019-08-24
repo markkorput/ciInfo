@@ -19,18 +19,18 @@ class Keyboard {
 
         builder.output<bool>("HasKeyDown");
         
-        builder.attr<bool>("enabled")
+        builder.input<bool>("enabled")
           ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
 
-            port.onDataIn([&instance](const bool& val){
+            port.onData<bool>([&instance](const bool& val){
               instance.enabled = val;
             });
 
           });
-        
-        builder.signal("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
-            instance.keySignal.connect([&port](char keycode){
-              port.signalOut();
+
+        builder.addOutPort("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
+          instance.keySignal.connect([&port](char keycode){
+              port.sendData(NULL);
             });
           });
       });
@@ -66,9 +66,9 @@ TEST_CASE("info::Type", ""){
     REQUIRE(instanceRef->port<bool>("enabled") != NULL);
 
     REQUIRE(keyboard.enabled == false);
-    instanceRef->port<bool>("enabled")->dataIn(true);
+    instanceRef->getInput("enabled")->sendData<bool>(true);
     REQUIRE(keyboard.enabled == true);
-    instanceRef->port<bool>("enabled")->dataIn(false);
+    instanceRef->getInput("enabled")->sendData<bool>(false);
     REQUIRE(keyboard.enabled == false);
   }
 
@@ -79,9 +79,9 @@ TEST_CASE("info::Type", ""){
     auto instanceRef = info->createInstance(keyboard);
     char capture = '0';
     
-    auto outport = instanceRef->port<char>("KeyCode");
-    REQUIRE(outport != NULL);
-    outport->onDataOut([&capture](const char& newval){
+    auto outport = instanceRef->getOutput("KeyCode");
+    REQUIRE(outport);
+    outport->onData<char>([&capture](const char& newval){
       capture = newval;
     });
 
@@ -97,7 +97,7 @@ TEST_CASE("info::Type", ""){
     auto instanceRef = info->createInstance(keyboard);
     char counter = 0;
     
-    instanceRef->signalPort("AnyKey")->onOutput([&counter](){
+    instanceRef->getOutput("AnyKey")->onSignal([&counter](){
       counter += 1;
     });
 

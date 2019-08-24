@@ -38,13 +38,25 @@ namespace info {
         return port<Void>(portname);
       }
 
-      PortRef getPort(const std::string& portname) {
+      PortRef getPort(const std::string& portname, bool input=true) {
+        return input ? getInput(portname) : getOutput(portname);
+      }
+
+      PortRef getInput(const std::string& portname) {
         for(auto portRef : portRefs)
-          if (portRef->getId() == portname)
+          if (portRef->isInput() && portRef->getId() == portname)
             return portRef;
         return nullptr;
       }
 
+      PortRef getOutput(const std::string& portname) {
+        for(auto portRef : portRefs) {
+          if (portRef->isOutput() && portRef->getId() == portname)
+            return portRef;
+        }
+        return nullptr;
+      }
+  
     public:
 
       std::vector<PortRef> portRefs;

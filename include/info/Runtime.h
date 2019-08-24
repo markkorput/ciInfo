@@ -17,6 +17,7 @@ namespace info {
 
       typedef std::function<InstanceRef(TypeRef)> InstantiatorFunc;
 
+      // add type with ID and builder func
       template<class T>
       std::shared_ptr<Type> addType(const std::string& typeId, std::function<void(TypeBuilder<T>&)> builderFunc) {
         InstantiatorFunc instantiatorFunc = [](TypeRef typeRef){
@@ -27,6 +28,17 @@ namespace info {
         return this->addType<T>(typeId, instantiatorFunc, builderFunc);
       }
 
+      // add type with ID and builder func and with custom object instantiator
+      template<class T>
+      std::shared_ptr<Type> addType(const std::string& typeId, std::function<T*()> objectInstatiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc) {
+        InstantiatorFunc instantiatorFunc = [objectInstatiatorFunc](TypeRef typeRef){
+          return typeRef->template createInstance<T>(*objectInstatiatorFunc(), true /* make sure object is deleted when instance expires */);
+        };
+
+        return this->addType<T>(typeId, instantiatorFunc, builderFunc);
+      }
+
+      // add type with ID and builder func and with custom instance instantiator
       template<class T>
       std::shared_ptr<Type> addType(const std::string& typeId, InstantiatorFunc instantiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc) {
         auto typeRef = Type::create(typeId, builderFunc);

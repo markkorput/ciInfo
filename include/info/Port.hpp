@@ -3,6 +3,7 @@
 // #include "ctree/signal.hpp"
 // #include "ciCMS/cfg/Cfg.h"
 #include <stdlib.h>
+#include <iostream>
 #include <string>
 #include <memory>
 #include "cinder/Signals.h"
@@ -13,85 +14,79 @@ namespace info {
   typedef std::shared_ptr<Port> PortRef;
 
   class Port {
-    
+
     public:
       typedef cinder::signals::Signal<void(const void*)> Signal;
 
     public:
       const static int FLAG_IN = 1;
-      const static int FLAG_OUT = (1 >> 1);
-      const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
+      const static int FLAG_OUT = (1 << 1);
+      // const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
       
       typedef std::function<void(const void*)> InFuncVoid;
       typedef std::function<void()> InFuncNoArg;
 
-    public:
+    public: // constructor
 
-      Port(const std::string& id, const std::string& type, int flags = FLAG_INOUT) : id(id), type(type), flags(flags) {
+      Port(const std::string& id, const std::string& type, int flags = FLAG_IN) : id(id), type(type), flags(flags) {
       }
 
-    public:
+    public: // get methods
+
       const std::string& getId() const { return id; }
       const std::string& getType() const { return type; }
+      const inline bool isInput() const { return flags & FLAG_IN; }
+      const inline bool isOutput() const { return flags & FLAG_OUT; }
+
+    public: // sending methods
 
       template<typename V>
-      void dataOut(const V& val) {
-        outSignal.emit((const void*)&val);
+      void sendData(const V& val) {
+        signal.emit((const void*)&val);
       }
 
-      template<typename V>
-      void dataIn(const V& val) {
-        inSignal.emit((const void*)&val);
+      void sendSignal() {
+        signal.emit(NULL);
       }
 
-      void signalOut() {
-        outSignal.emit(NULL);
+    public: // receiving methods
+
+      cinder::signals::Connection onSignal(InFuncNoArg func) {
+        return signal.connect(toVoid(func));
       }
 
-      void signalIn() {
-        inSignal.emit(NULL);
+      template <typename V>
+      cinder::signals::Connection onData(std::function<void(const V&)> func) {
+        return signal.connect([func](const void* arg){
+          func(*(V*)arg);
+        });
       }
 
-      cinder::signals::Connection onInput(InFuncNoArg func) {
-        return inSignal.connect(toVoid(func));
-      }
+    public: // connect methods
 
-      cinder::signals::Connection onOutput(InFuncNoArg func) {
-        return outSignal.connect(toVoid(func));
-      }
-
-      // cinder::signals::Connection inputTo(Port& outputPort, bool performTypeCheck = false) {
-      //   // return dummy connection if types don't match. TODO; log warning?
-      //   if (performTypeCheck && outputPort.type != this->type) return cinder::signals::Connection();
-      //   return Port::connect(this->outSignal, outputPort.inSignal);
-      // }
-
-      cinder::signals::Connection outputTo(Port& inputPort, bool performTypeCheck = false) {
-        // return dummy connection if types don't match. TODO; log warning?
-        if (performTypeCheck && inputPort.type != this->type) return cinder::signals::Connection();
-        return Port::connect(this->outSignal, inputPort.inSignal);
+      cinder::signals::Connection outputTo(Port& receiver, bool performTypeCheck = false) {
+        return Port::connect(*this, receiver, performTypeCheck);
       }
 
       cinder::signals::Connection outputTo(Signal& signal) {
-        return Port::connect(outSignal, signal);
+        return Port::connect(this->signal, signal);
+      }
+
+      cinder::signals::Connection inputFrom(Port& sender, bool performTypeCheck = false) {
+        return Port::connect(sender, *this, performTypeCheck);
       }
 
       cinder::signals::Connection inputFrom(Signal& signal) {
-        return Port::connect(signal, this->inSignal);
+        // signal.connect([](const void* pp){
+        //   std::cout << "inputFrom inputFrom inputFrom inputFrom " << std::endl;
+        // });
+        return Port::connect(signal, this->signal);
       }
 
-      // cinder::signals::Connection inputTo(Signal& signal) {
-      //   return Port::connect(inSignal, signal);
-      // }
-
-      cinder::signals::Connection outputFrom(Signal& signal) {
-        return Port::connect(signal, this->outSignal);
-      }
-
-      inline static cinder::signals::Connection connect(Port& output, Port& input, bool performTypeCheck = false) {
+      inline static cinder::signals::Connection connect(Port& sender, Port& receiver, bool performTypeCheck = false) {
         // return dummy connection if types don't match. TODO; log warning?
-        if (performTypeCheck && input.type != output.type) return cinder::signals::Connection();
-        return connect(output.outSignal, input.inSignal);
+        if (performTypeCheck && sender.type != receiver.type) return cinder::signals::Connection();
+        return Port::connect(sender.signal, receiver.signal);
       }
 
       inline static cinder::signals::Connection connect(Signal& output, Signal& input) {
@@ -100,7 +95,7 @@ namespace info {
         });
       }
 
-    protected:
+    protected: // methods
 
       inline InFuncVoid toVoid(InFuncNoArg func) { 
         return [func](const void* arg) {
@@ -108,11 +103,10 @@ namespace info {
         };
       }
 
-    public:
-      Signal inSignal;
-      Signal outSignal;
+    public: // attributes
+      Signal signal;
 
-    private:
+    private: // attributes
       std::string id;
       std::string type;
       int flags;
@@ -125,32 +119,32 @@ namespace info {
       typedef std::function<void(const V&)> InFuncTypeRef;
 
     public:
-      TypedPort(const std::string& id, int flags = Port::FLAG_INOUT) : Port(id, typeid(V).name(), flags) {
+      TypedPort(const std::string& id, int flags = Port::FLAG_IN) : Port(id, typeid(V).name(), flags) {
       }
 
-      void dataIn(const V& val) {
-        Port::dataIn<V>(val);
-      }
+      // void dataIn(const V& val) {
+      //   Port::dataIn<V>(val);
+      // }
 
-      void dataOut(const V& val) {
-        Port::dataOut<V>(val);
-      }
+      // void dataOut(const V& val) {
+      //   Port::dataOut<V>(val);
+      // }
 
-      cinder::signals::Connection onDataIn(InFuncTypeRef func) {
-        return inSignal.connect(toVoid(func));
-      }
+      // cinder::signals::Connection onData(InFuncTypeRef func) {
+      //   return this->inSignal.connect(toVoid(func));
+      // }
 
-      cinder::signals::Connection onDataOut(InFuncTypeRef func) {
-        return outSignal.connect(toVoid(func));
-      }
+      // cinder::signals::Connection onDataOut(InFuncTypeRef func) {
+      //   return outSignal.connect(toVoid(func));
+      // }
 
-      private:
+      // private:
 
-        inline InFuncVoid toVoid(InFuncTypeRef func) { 
-          return [func](const void* arg){
-            func(*(const V*)arg);
-          };
-        }
+      //   inline InFuncVoid toVoid(InFuncTypeRef func) { 
+      //     return [func](const void* arg){
+      //       func(*(const V*)arg);
+      //     };
+      //   }
   };
 
 }

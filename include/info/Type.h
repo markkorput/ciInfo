@@ -13,7 +13,7 @@ namespace info {
   typedef std::shared_ptr<Type> TypeRef;
 
   class Type {
-    public:
+    public: // static methods
 
       template<class T>
       static std::shared_ptr<Type> create(const std::string &typeId, std::function<void(TypeBuilder<T>&)> func) {
@@ -31,7 +31,7 @@ namespace info {
         return type;
       }
 
-    public:
+    public: // methods
 
       // configure an instance with the given Cfg
       template<class T>
@@ -59,7 +59,7 @@ namespace info {
         return instanceRef;
       }
 
-    public:
+    public: // get methods
 
       const std::string& getId() const { return id; }
 

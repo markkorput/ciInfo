@@ -16,8 +16,7 @@ namespace info {
 
       typedef std::function<void(void*, Instance&)> InstanceConnectFunc;
 
-      template<typename V>
-      std::shared_ptr<PortBuilder<T,V>> attr(const std::string& id) { return addPort<V>(id, Port::FLAG_INOUT); }
+    public: // add methods
 
       template<typename V>
       std::shared_ptr<PortBuilder<T,V>> input(const std::string& id) { return addPort<V>(id, Port::FLAG_IN); }
@@ -35,12 +34,10 @@ namespace info {
         return ref;
       }
 
-      std::shared_ptr<PortBuilder<T,Void>> addInput(const std::string& id) { return addPort<Void>(id, Port::FLAG_IN); }
-      std::shared_ptr<PortBuilder<T,Void>> addOutput(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
+      std::shared_ptr<PortBuilder<T,Void>> addInPort(const std::string& id) { return addPort<Void>(id, Port::FLAG_IN); }
+      std::shared_ptr<PortBuilder<T,Void>> addOutPort(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
 
-      std::shared_ptr<PortBuilder<T,Void>> signalOut(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
-      std::shared_ptr<PortBuilder<T,Void>> signalIn(const std::string& id) { return addPort<Void>(id, Port::FLAG_IN); }
-      std::shared_ptr<PortBuilder<T,Void>> signal(const std::string& id) { return addPort<Void>(id, Port::FLAG_INOUT); }
+    public: // get methods
 
       const std::vector<std::shared_ptr<PortDef>>& getPortDefs() const {
         return portDefRefs;
@@ -50,12 +47,11 @@ namespace info {
         return instanceConnectFuncs;
       }
 
-      void connect(std::function<void(T& obj, Instance&)> func) {
-        instanceConnectFuncs.push_back([func](void* obj, Instance& inst){
-          func(*(T*)obj, inst);
-        });
-      }
-
+      // void connect(std::function<void(T& obj, Instance&)> func) {
+      //   instanceConnectFuncs.push_back([func](void* obj, Instance& inst){
+      //     func(*(T*)obj, inst);
+      //   });
+      // }
 
     private:
       std::vector<std::shared_ptr<PortDef>> portDefRefs;

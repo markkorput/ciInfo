@@ -6,45 +6,17 @@
 #include "info/Runtime.h"
 #include "info/Schema.h"
 #include "info/functions.h"
+#include "info/components/Value.hpp"
 
 std::vector<std::string> printedValues;
 
-void initHellowWorldNativeRuntime(info::Runtime& runtime) {
-  runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
+void initHelloWorldNativeRuntime(info::Runtime& runtime) {
 
-    builder.attr<bool>("value")
-      ->apply([](bool& instance, info::TypedPort<bool>& port) {
-        // when data comes in through the value-IN-port; apply that value
-        port.onDataIn([&instance, &port](const bool& val){
-          if (val == instance) return;
-          instance = val;
-          // immediately send the new value to the out port
-          port.dataOut(instance);
-        });
-      });
-  });
-
-
-  runtime.addType<std::string>("string", [](info::TypeBuilder<std::string>& builder){
-
-    builder.input<std::string>("value")
-      ->apply([](std::string& instance, info::TypedPort<std::string>& port) {
-          port.onDataIn([&instance](const std::string& val){
-            instance = val;
-          });
-      });
-
-    builder.attr<std::string>("fire")
-      ->apply([](std::string& instance, info::TypedPort<std::string>& port) {
-        port.onInput([&instance, &port](){
-            port.dataOut(instance);
-        });
-      });
-  });
+  info::components::Value<std::string>::addToRuntime(runtime, "string");
 
   runtime.addType<bool>("Printer", [](info::TypeBuilder<bool>& builder){
     builder.input<std::string>("print")
-      ->onDataIn([](const std::string& value){
+      ->onData([](const std::string& value){
           printedValues.push_back(value);
       });
   });
@@ -68,26 +40,27 @@ TEST_CASE("Examples", ""){
   SECTION("HelloWorld") {
     // main
     info::Runtime nativeRuntime;
-    initHellowWorldNativeRuntime(nativeRuntime);
+    initHelloWorldNativeRuntime(nativeRuntime);
 
     info::Schema schema;
     initHelloWorldSchema(schema);
 
     info::RuntimeRef schemaRuntimeRef = mergeSchemaTypes(nativeRuntime, schema);
 
-    // std::cout << "before: " << schemaRuntimeRef->getInstances().size() << std::endl;
+    // // std::cout << "before: " << schemaRuntimeRef->getInstances().size() << std::endl;
     auto instanceRef = schemaRuntimeRef->createInstance("HelloWorldApp");
-    // std::cout << "after: " << schemaRuntimeRef->getInstances().size() << std::endl;
-    REQUIRE(schemaRuntimeRef->getInstances().size() == 3); // The HellowWorldApp, the Printer and the string
     REQUIRE(instanceRef != nullptr);
+    // // std::cout << "after: " << schemaRuntimeRef->getInstances().size() << std::endl;
+    REQUIRE(schemaRuntimeRef->getInstances().size() == 3); // The HellowWorldApp, the Printer and the string
     
-    auto pStartPort = instanceRef->signalPort("start");
-    REQUIRE(pStartPort != NULL);
-    pStartPort->signalIn();
+    
+    auto pStartPort = instanceRef->getInput("start");
+    REQUIRE(pStartPort);
+    pStartPort->sendSignal();
     REQUIRE(printedValues.size() == 1);
     REQUIRE(printedValues[0] == "Hello World!");
-    pStartPort->signalIn();
-    pStartPort->signalIn();
+    pStartPort->sendSignal();
+    pStartPort->sendSignal();
     REQUIRE(printedValues.size() == 3);
   }
 }
