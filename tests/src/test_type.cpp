@@ -2,14 +2,14 @@
 
 #include <iostream>
 #include <memory>
-#include "info/Interface.h"
+#include "info/Type.h"
 // #include "cinder/app/App.h" // for CINDER_MSW macro
 #include "cinder/Signals.h"
 
 class Keyboard {
   public:
-    static std::shared_ptr<info::Interface> createInfoInterface() {
-      return info::Interface::create<Keyboard>([](info::Builder<Keyboard>& builder){
+    static std::shared_ptr<info::Type> createInfoType() {
+      return info::Type::create<Keyboard>("Keyboard", [](info::TypeBuilder<Keyboard>& builder){
         builder.output<char>("KeyCode")
           ->apply([](Keyboard& instance, std::function<void(const char&)> out) {
             instance.keySignal.connect([out](char keycode){
@@ -40,9 +40,9 @@ class Keyboard {
     bool enabled = false;
 };
 
-TEST_CASE("info::Interface", ""){
+TEST_CASE("info::Type", ""){
   SECTION("create"){
-    auto info = Keyboard::createInfoInterface();
+    auto info = Keyboard::createInfoType();
 
     // verify we can extract outputs information from info interface
     std::vector<std::string> ids = {"KeyCode", "HasKeyDown", "enabled", "AnyKey"};
@@ -59,7 +59,7 @@ TEST_CASE("info::Interface", ""){
   }
 
   SECTION("createInstance + input") {
-    auto info = Keyboard::createInfoInterface();
+    auto info = Keyboard::createInfoType();
 
     Keyboard keyboard;
     auto instanceRef = info->createInstance(keyboard);
@@ -73,7 +73,7 @@ TEST_CASE("info::Interface", ""){
   }
 
   SECTION("createInstance + output") {
-    auto info = Keyboard::createInfoInterface();
+    auto info = Keyboard::createInfoType();
 
     Keyboard keyboard;
     auto instanceRef = info->createInstance(keyboard);
@@ -91,7 +91,7 @@ TEST_CASE("info::Interface", ""){
   }
 
   SECTION("signalOut & onOutput") {
-    auto info = Keyboard::createInfoInterface();
+    auto info = Keyboard::createInfoType();
 
     Keyboard keyboard;
     auto instanceRef = info->createInstance(keyboard);

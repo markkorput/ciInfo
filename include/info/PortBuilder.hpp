@@ -16,6 +16,18 @@ namespace info {
         return portDefRef;
       }
 
+      // void inputTo(Port::Signal& signal) {
+      //   this->portDefRef->addConnector([&signal](void* instance, Port* port){
+      //     port->inputTo(signal);
+      //   });
+      // }
+
+      void outputFrom(Port::Signal& signal) {
+        this->portDefRef->addConnector([&signal](void* instance, Port* port){
+          port->outputFrom(signal);
+        });
+      }
+
     protected:
       std::shared_ptr<PortDef> portDefRef;
   };
@@ -40,10 +52,22 @@ namespace info {
         });
       }
 
+      // void apply(std::function<void(T&, Port&)> logic) {
+      //   this->apply([logic](T& instance, TypedPort<V>& port){
+      //     logic(instance, port);
+      //   });
+      // }
+
       void apply(std::function<void(T&, TypedPort<V>&)> logic) {
         // connectors connect an runtime object to an info port using custom caller-provided logic
         this->portDefRef->addConnector([logic](void* instance, Port* port){
           logic(*(T*)instance, *(TypedPort<V>*)port);
+        });
+      }
+
+      void onDataIn(std::function<void(const V& v)> func) {
+        this->apply([func](T& instance, info::TypedPort<V>& port) {
+          port.onDataIn(func);
         });
       }
   };

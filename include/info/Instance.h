@@ -8,11 +8,21 @@
 
 namespace info {
 
+  class Instance;
+  typedef std::shared_ptr<Instance> InstanceRef;
+
   class Instance {
 
     public:
 
-      Instance(std::vector<std::shared_ptr<Port>> ports) : portRefs(ports) {
+      Instance(std::vector<std::shared_ptr<Port>> ports, std::function<void()> cleanupFunc = nullptr) : portRefs(ports), cleanupFunc(cleanupFunc) {
+      }
+
+      ~Instance() {
+        if (this->cleanupFunc) {
+          cleanupFunc();
+          cleanupFunc = nullptr;
+        }
       }
 
       template<typename V>
@@ -28,9 +38,17 @@ namespace info {
         return port<Void>(portname);
       }
 
+      PortRef getPort(const std::string& portname) {
+        for(auto portRef : portRefs)
+          if (portRef->getId() == portname)
+            return portRef;
+        return nullptr;
+      }
+
     public:
 
-      std::vector<std::shared_ptr<Port>> portRefs;
+      std::vector<PortRef> portRefs;
+      std::function<void()> cleanupFunc;
   };
 
 }
