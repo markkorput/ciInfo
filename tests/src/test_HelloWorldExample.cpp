@@ -7,6 +7,8 @@
 #include "info/Schema.h"
 #include "info/functions.h"
 
+std::vector<std::string> printedValues;
+
 void initHellowWorldNativeRuntime(info::Runtime& runtime) {
   runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
     builder.attr<bool>("value")
@@ -34,6 +36,7 @@ void initHellowWorldNativeRuntime(info::Runtime& runtime) {
     builder.input<std::string>("print")
       ->onDataIn([](const std::string& value){
           std::cout << " ### PRINTER printing: " << value << std::endl;
+          printedValues.push_back(value);
       });
   });
 }
@@ -69,5 +72,7 @@ TEST_CASE("Examples", ""){
     auto pStartPort = instanceRef->signalPort("start");
     REQUIRE(pStartPort != NULL);
     pStartPort->signalOut();
+    REQUIRE(printedValues.size() == 1);
+    REQUIRE(printedValues[0] == "Hello World!");
   }
 }

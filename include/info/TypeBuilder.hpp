@@ -35,6 +35,9 @@ namespace info {
         return ref;
       }
 
+      std::shared_ptr<PortBuilder<T,Void>> addInput(const std::string& id) { return addPort<Void>(id, Port::FLAG_IN); }
+      std::shared_ptr<PortBuilder<T,Void>> addOutput(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
+
       std::shared_ptr<PortBuilder<T,Void>> signalOut(const std::string& id) { return addPort<Void>(id, Port::FLAG_OUT); }
       std::shared_ptr<PortBuilder<T,Void>> signalIn(const std::string& id) { return addPort<Void>(id, Port::FLAG_IN); }
       std::shared_ptr<PortBuilder<T,Void>> signal(const std::string& id) { return addPort<Void>(id, Port::FLAG_INOUT); }
