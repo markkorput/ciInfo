@@ -108,7 +108,7 @@ namespace info {
         });
       }
 
-      // argument-less members function
+      // member function WITH const reference argument
       template<class TT>
       void apply(void (TT::*memberFunction) (const V&)) {
         this->apply([memberFunction](TT& instance, Port& port) {
@@ -118,5 +118,17 @@ namespace info {
           port.onData<V>([&instance, memberFunction](const V& val){ (instance.*memberFunction)(val); });
         });
       }
+
+      // member function WITH argument
+      template<class TT>
+      void apply(void (TT::*memberFunction) (V)) {
+        this->apply([memberFunction](TT& instance, Port& port) {
+          if (port.isOutput())
+            std::cout << "WARNING; binding output port to member function, this might give unexpected results." << std::endl; 
+          
+          port.onData<V>([&instance, memberFunction](const V& val){ (instance.*memberFunction)(val); });
+        });
+      }
+
   };
 }

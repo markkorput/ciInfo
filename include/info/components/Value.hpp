@@ -20,18 +20,14 @@ namespace info { namespace components {
       static std::function<void(TypeBuilder<Value<V>>&)> getBuilderFunc() {
         return [](info::TypeBuilder<Value<V>>& builder){
 
-          // INPUTS
+          // connect inputs to argumentless member methods
+          builder.addInPort("fire")->apply(&Value<V>::fire);
+          builder.addInPort("reset")->apply(&Value<V>::reset);
 
           // connect input port to member method WITH argument
           builder.template input<V>("value")->apply(&Value<V>::set);
 
-          // connect input port to argumentless member method
-          builder.addInPort("fire")->apply(&Value<V>::fire);
-          builder.addInPort("reset")->apply(&Value<V>::reset);
-
-          // OUTPUTS
-
-          // connect output ports to member signals
+          // connect outputs ports to member signals
           builder.template output<V>("set")->apply(&Value<V>::initSignal);
           builder.template output<V>("change")->apply(&Value<V>::changeSignal);
           builder.template output<V>("init")->apply(&Value<V>::initSignal);
