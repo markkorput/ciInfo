@@ -5,21 +5,6 @@
 
 #include "info/Schema.h"
 
-// void _init(info::Schema& schema) {
-//   // this implicitly should create the type "HelloWorldApp"
-//   auto app = schema.createImplementation("HelloWorldApp");
-//   // also creates the type "string" if it didn't exist yet
-//   auto messageInstance = schema->createInstance(app, "string", "Message");
-//   auto printInstance = schema->createInstance(app, "Printer", "Printer");
-
-//   // create connection of the "fired" message to the printer
-//   schema.createConnection(messageInstance, "fire", printInstance, "print");
-
-//   // create connection between the app's "start" input port
-//   // and the message's "fire" input port.
-//   schema.createConnection("start", messageInstance, "fire");
-// }
-
 using namespace info;
 
 TEST_CASE("info::Schema", ""){
