@@ -55,7 +55,7 @@ namespace info {
           // register cleanup routine that removes the created instance
           // the runtime when this implementation deconstructs
           pImp->cleanupFuncs.push_back([&runtime, instanceRef](){
-            std::cout << "Implementation cleanup func" << std::endl;
+            // std::cout << "Implementation cleanup func" << std::endl;
             runtime.removeInstance(instanceRef);
           });
         }
@@ -66,14 +66,14 @@ namespace info {
 
         for(auto initialValRef : implRef->initialValues) {
           auto instance = pImp->findInstanceForSchemaId(initialValRef->instanceId);
-          auto portRef = instance ? instance->getPort(initialValRef->portId) : nullptr;
+          auto portRef = instance ? instance->getInput(initialValRef->portId) : nullptr;
 
           if (!portRef) {
             std::cerr << "Could not apply initial value because of missing port and/or instance: " << initialValRef->instanceId << "/" << initialValRef->portId << std::endl;
             continue;
           }
 
-          portRef->inSignal.emit(initialValRef->value);
+          portRef->signal.emit(initialValRef->value);
         }
 
         applyInternalSchemaConnections(*pImp, implRef);
@@ -94,7 +94,11 @@ namespace info {
           builder.addInput(input->id)->apply([implRef, input](Implementation& imp, Port& inputPort){
             // establish all connection made to this port according to the schema's implementation
             withEachPortConnectedToInput(input->id, imp, implRef, [&inputPort](Port& p){
-              Port::connect(inputPort.inSignal, p.inSignal);
+              // std::cout << "withEachPortConnectedToInput" << std::endl;
+              // inputPort.signal.connect([&p](const void* dummy){
+              //     std::cout << "INPUT INPUT: " << p.getId() << std::endl;
+              // });
+              Port::connect(inputPort, p);
             });
           });
         }
@@ -105,7 +109,8 @@ namespace info {
           builder.addOutput(output->id)->apply([output,implRef](Implementation& imp, Port& outputPort){
             // establish all connection made to this port according to the schema's implementation
             withEachPortConnectedToOutput(output->id, imp, implRef, [&outputPort](Port& p){
-              Port::connect(p.outSignal, outputPort.outSignal);
+              // std::cout << "withEachPortConnectedToOutput" << std::endl;
+              Port::connect(p, outputPort);
             });
           });
         }
@@ -143,7 +148,7 @@ namespace info {
               continue;
             }
 
-            auto portRef = pReceiver->getPort(connRef->input.portId);
+            auto portRef = pReceiver->getInput(connRef->input.portId);
 
             if (!portRef) {
               std::cerr << "Implementation::withEachPortConnectedToInput could not find port: " << connRef->input.portId << "(for instance: " << connRef->input.instanceId << ")" << std::endl;
@@ -167,7 +172,7 @@ namespace info {
               continue;
             }
 
-            auto portRef = pInstance->getPort(connRef->output.portId);
+            auto portRef = pInstance->getOutput(connRef->output.portId);
 
             if (!portRef) {
               std::cerr << "Implementation::withEachPortConnectedToOutput could not find port: " << connRef->output.portId << "(for instance: " << connRef->output.instanceId << ")" << std::endl;
@@ -191,19 +196,21 @@ namespace info {
           // in the build logic, when the Instance's ports are created
           if (connRef->input.instanceId == implRef->id || connRef->output.instanceId == implRef->id) continue;
 
-          auto inputRef = implementation.findInstanceForSchemaId(connRef->input.instanceId);
-          auto inputPort = inputRef ? inputRef->getPort(connRef->input.portId) : nullptr;
+          // std::cout << "conn: " << connRef->output.portId << " --> " << connRef->input.portId << std::endl;
 
-          auto outputRef = implementation.findInstanceForSchemaId(connRef->output.instanceId);
-          auto outputPort = outputRef ? outputRef->getPort(connRef->output.portId) : nullptr;
+          auto receiverRef = implementation.findInstanceForSchemaId(connRef->input.instanceId);
+          auto receiverPort = receiverRef ? receiverRef->getInput(connRef->input.portId) : nullptr;
 
-          if (!outputPort) {
-            std::cout << "Could not connect schema instance because of missing output port: " << connRef->output.portId << "(for: "<< connRef->output.instanceId << ")" <<std::endl;
+          auto senderRef = implementation.findInstanceForSchemaId(connRef->output.instanceId);
+          auto senderPort = senderRef ? senderRef->getOutput(connRef->output.portId) : nullptr;
+
+          if (!receiverPort) {
+            std::cout << "Could not connect schema instance because of missing receiver port: " << connRef->input.portId << "(for: "<< connRef->input.instanceId << ")" <<std::endl;
             continue;
           }
 
-          if (!inputPort) {
-            std::cout << "Could not connect schema instance because of missing input port: " << connRef->input.portId << "(for: "<< connRef->input.instanceId << ")" << std::endl;
+          if (!senderPort) {
+            std::cout << "Could not connect schema instance because of missing sender port: " << connRef->output.portId << "(for: "<< connRef->output.instanceId << ")" << std::endl;
             continue;
           }
 
@@ -211,7 +218,7 @@ namespace info {
           // Connect Ports
           //
 
-          auto signalConnection = Port::connect(*outputPort, *inputPort, true /* check type */);
+          auto signalConnection = Port::connect(*senderPort, *receiverPort, true /* check type */);
           pImp->signalConnections.push_back(signalConnection);
         }
       }

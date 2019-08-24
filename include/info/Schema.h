@@ -103,10 +103,6 @@ namespace info {
                 this->cleanupFunc = nullptr;
               };
             }
-
-            // void applyTo(PortRef portRef) {
-            //   portRef.inSignal.emit()
-            // }
           
           private:
             std::function<void()> cleanupFunc = nullptr;
