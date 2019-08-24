@@ -28,7 +28,7 @@ class Keyboard {
 
           });
 
-        builder.addOutput("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
+        builder.addOutPort("AnyKey")->apply([](Keyboard& instance, info::Port& port) {
           instance.keySignal.connect([&port](char keycode){
               port.sendData(NULL);
             });

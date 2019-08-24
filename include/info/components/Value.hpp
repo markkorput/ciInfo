@@ -19,10 +19,8 @@ namespace info { namespace components {
 
       static std::function<void(TypeBuilder<Value<V>>&)> getBuilderFunc() {
         return [](info::TypeBuilder<Value<V>>& builder){
-          builder.template output<V>("fire")
-            ->apply([](Value<V>& instance, Port& port) {
-              port.inputFrom(instance.fireSignal);
-            });
+
+          // INPUTS
 
           builder.template input<V>("value")
             ->apply([](Value<V>& instance, Port& port) {
@@ -31,11 +29,18 @@ namespace info { namespace components {
               });
             });
 
-          builder.addInput("fire")
+          builder.addInPort("fire")
             ->apply([](Value<V>& instance, Port& port) {
               port.onSignal([&instance]() {
                 instance.fire();
               });
+            });
+
+          // OUTPUTS
+
+          builder.template output<V>("fire")
+            ->apply([](Value<V>& instance, Port& port) {
+              port.inputFrom(instance.fireSignal);
             });
         };
       }

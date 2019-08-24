@@ -11,13 +11,13 @@ namespace info {
 
       const static int FLAG_IN = 1;
       const static int FLAG_OUT = (1 >> 1);
-      const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
+      // const static int FLAG_INOUT = (FLAG_IN & FLAG_OUT);
 
       typedef std::function<void(void*, Port*)> ConnectorFunc;
 
     public:
 
-      PortDef(const std::string& id, const std::string& type, int flags = FLAG_INOUT) : id(id), type(type), flags(flags) {
+      PortDef(const std::string& id, const std::string& type, int flags = FLAG_IN) : id(id), type(type), flags(flags) {
       }
   
     public:

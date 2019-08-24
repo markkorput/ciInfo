@@ -91,7 +91,7 @@ namespace info {
 
         // create an input on the Runtime Type for every input in the schema's Type
         for(auto input : schemaTypeRef->inputs) {
-          builder.addInput(input->id)->apply([implRef, input](Implementation& imp, Port& inputPort){
+          builder.addInPort(input->id)->apply([implRef, input](Implementation& imp, Port& inputPort){
             // establish all connection made to this port according to the schema's implementation
             withEachPortConnectedToInput(input->id, imp, implRef, [&inputPort](Port& p){
               // std::cout << "withEachPortConnectedToInput" << std::endl;
@@ -106,7 +106,7 @@ namespace info {
         // create an output on the Runtime Type for every output in the schema's Type
         for(auto output : schemaTypeRef->outputs) {
           // std::cout << "Implementation output: " << output->id << std::endl;
-          builder.addOutput(output->id)->apply([output,implRef](Implementation& imp, Port& outputPort){
+          builder.addOutPort(output->id)->apply([output,implRef](Implementation& imp, Port& outputPort){
             // establish all connection made to this port according to the schema's implementation
             withEachPortConnectedToOutput(output->id, imp, implRef, [&outputPort](Port& p){
               // std::cout << "withEachPortConnectedToOutput" << std::endl;
