@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <memory>
 
+// #include "Port.hpp"
+
 namespace info {
   class Schema;
   typedef std::shared_ptr<Schema> SchemaRef;
@@ -16,7 +18,7 @@ namespace info {
       class Port {
         public:
           Id id;
-          Id typeId;
+          Id typeName;
       };
 
       typedef std::shared_ptr<Port> PortRef;
@@ -70,6 +72,48 @@ namespace info {
 
       typedef std::shared_ptr<Connection> ConnectionRef;
 
+      class InitialValue {
+          public:
+            Id id;
+            Id instanceId;
+            Id portId;
+            std::string typeName;
+            void* value = NULL;
+
+          public: // methods
+
+            ~InitialValue() {
+              if (this->cleanupFunc) this->cleanupFunc();
+            }
+
+            template<typename V>
+            void set(const V& val) {
+              if (value != NULL && this->cleanupFunc) {
+                this->cleanupFunc();
+              }
+
+              V* pointer = new V();
+              *pointer = val;
+              this->value = (void*)pointer;
+
+              this->cleanupFunc = [this]() {
+                V* deleter = (V*)this->value;
+                delete deleter;
+                this->value = NULL;
+                this->cleanupFunc = nullptr;
+              };
+            }
+
+            // void applyTo(PortRef portRef) {
+            //   portRef.inSignal.emit()
+            // }
+          
+          private:
+            std::function<void()> cleanupFunc = nullptr;
+      };
+
+      typedef std::shared_ptr<InitialValue> InitialValueRef;
+
       class Implementation {
         public:
           Id id;
@@ -77,11 +121,29 @@ namespace info {
         
           std::vector<InstanceRef> instances;
           std::vector<ConnectionRef> connections;
+          std::vector<InitialValueRef> initialValues;
       };
 
       typedef std::shared_ptr<Implementation> ImplementationRef;
 
-    public: // methods
+
+    public: // get methods
+
+      ImplementationRef getImplementation(const std::string& id) {
+        for(auto ref : implementationRefs) 
+          if(ref->id == id)
+            return ref;
+        return nullptr;
+      }
+
+      TypeRef getType(const std::string& id) {
+        for(auto ref : typeRefs) 
+          if(ref->id == id)
+            return ref;
+        return nullptr;
+      }
+
+    public: // create methods
 
       ImplementationRef createImplementation(const Id& id) {
         // an implementation with this ID already exists
@@ -99,20 +161,6 @@ namespace info {
         ref->typeId = typeRef->id;
 
         return ref;
-      }
-
-      ImplementationRef getImplementation(const std::string& id) {
-        for(auto ref : implementationRefs) 
-          if(ref->id == id)
-            return ref;
-        return nullptr;
-      }
-
-      TypeRef getType(const std::string& id) {
-        for(auto ref : typeRefs) 
-          if(ref->id == id)
-            return ref;
-        return nullptr;
       }
 
       InstanceRef createInstance(ImplementationRef imp, const Id& type, const std::string& name = "") {
@@ -135,6 +183,8 @@ namespace info {
         return ref;
       }
 
+      /// Create connection from the output port of an implementation's instance,
+      /// to the input port of another instance in the same implementation
       ConnectionRef createConnection(ImplementationRef imp, InstanceRef outputInstance, const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
         return createConnection(
           imp,
@@ -147,6 +197,7 @@ namespace info {
         );
       }
 
+      /// Create connection from an input port of the implementation to an input of one of its instances
       ConnectionRef createConnection(ImplementationRef imp, const Id& outputPort, InstanceRef inputInstance, const Id& inputPort) {
         return createConnection(
           imp,
@@ -157,6 +208,19 @@ namespace info {
           inputPort,
           nextOrderForInputConnections(imp, inputInstance->id, outputPort)
         );
+      }
+
+      template <typename V>
+      InitialValueRef createInitialValue(ImplementationRef imp, InstanceRef instance, const Id& portId, const V& val) {
+        auto ref = std::make_shared<InitialValue>();
+
+        ref->instanceId = instance->id;
+        ref->portId = portId;
+        ref->typeName = typeid(V).name();
+        ref->set<V>(val);
+        imp->initialValues.push_back(ref);
+
+        return ref;
       }
 
     protected: // methods

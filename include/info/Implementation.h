@@ -64,7 +64,17 @@ namespace info {
         // [TODO; apply all initial values]
         //
 
-        // ...
+        for(auto initialValRef : implRef->initialValues) {
+          auto instance = pImp->findInstanceForSchemaId(initialValRef->instanceId);
+          auto portRef = instance ? instance->getPort(initialValRef->portId) : nullptr;
+
+          if (!portRef) {
+            std::cerr << "Could not apply initial value because of missing port and/or instance: " << initialValRef->instanceId << "/" << initialValRef->portId << std::endl;
+            continue;
+          }
+
+          portRef->inSignal.emit(initialValRef->value);
+        }
 
         applyInternalSchemaConnections(*pImp, implRef);
         

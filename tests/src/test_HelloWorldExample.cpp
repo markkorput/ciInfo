@@ -11,19 +11,29 @@ std::vector<std::string> printedValues;
 
 void initHellowWorldNativeRuntime(info::Runtime& runtime) {
   runtime.addType<bool>("bool", [](info::TypeBuilder<bool>& builder){
+
     builder.attr<bool>("value")
       ->apply([](bool& instance, info::TypedPort<bool>& port) {
         // when data comes in through the value-IN-port; apply that value
         port.onDataIn([&instance, &port](const bool& val){
           if (val == instance) return;
           instance = val;
-            // immediately send the new value to the out port
+          // immediately send the new value to the out port
           port.dataOut(instance);
         });
       });
   });
 
+
   runtime.addType<std::string>("string", [](info::TypeBuilder<std::string>& builder){
+
+    builder.input<std::string>("value")
+      ->apply([](std::string& instance, info::TypedPort<std::string>& port) {
+          port.onDataIn([&instance](const std::string& val){
+            instance = val;
+          });
+      });
+
     builder.attr<std::string>("fire")
       ->apply([](std::string& instance, info::TypedPort<std::string>& port) {
         port.onInput([&instance, &port](){
@@ -35,7 +45,6 @@ void initHellowWorldNativeRuntime(info::Runtime& runtime) {
   runtime.addType<bool>("Printer", [](info::TypeBuilder<bool>& builder){
     builder.input<std::string>("print")
       ->onDataIn([](const std::string& value){
-          std::cout << " ### PRINTER printing: " << value << std::endl;
           printedValues.push_back(value);
       });
   });
@@ -51,6 +60,8 @@ void initHelloWorldSchema(info::Schema& schema) {
 
   // create connection that "fires" the message when the app's input "start" port is triggered
   schema.createConnection(app, "start", messageInstance, "fire");
+
+  schema.createInitialValue<std::string>(app, messageInstance, "value", "Hello World!");
 }
 
 TEST_CASE("Examples", ""){
