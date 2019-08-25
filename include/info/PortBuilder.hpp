@@ -12,21 +12,9 @@ namespace info {
       PortBuilderBase(std::shared_ptr<PortDef> portDefRef) : portDefRef(portDefRef) {
       }
 
-      std::shared_ptr<PortDef> getPortDef() {
+      inline std::shared_ptr<PortDef> getPortDef() {
         return portDefRef;
       }
-
-      // void inputTo(Port::Signal& signal) {
-      //   this->portDefRef->addConnector([&signal](void* instance, Port* port){
-      //     port->inputTo(signal);
-      //   });
-      // }
-
-      // void outputFrom(Port::Signal& signal) {
-      //   this->portDefRef->addConnector([&signal](void* instance, Port* port){
-      //     port->outputFrom(signal);
-      //   });
-      // }
 
     protected:
       std::shared_ptr<PortDef> portDefRef;
@@ -129,6 +117,5 @@ namespace info {
           port.onData<V>([&instance, memberFunction](const V& val){ (instance.*memberFunction)(val); });
         });
       }
-
   };
 }

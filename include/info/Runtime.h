@@ -17,84 +17,31 @@ namespace info {
 
       typedef std::function<InstanceRef(TypeRef)> InstantiatorFunc;
 
+    public: // static methods
+
+      static void copyTypes(Runtime& from, Runtime& to);
+
       // add type with ID and builder func
       template<class T>
-      std::shared_ptr<Type> addType(const std::string& typeId, std::function<void(TypeBuilder<T>&)> builderFunc) {
-        InstantiatorFunc instantiatorFunc = [](TypeRef typeRef){
-          auto object = new T();
-          return typeRef->template createInstance<T>(*object, true /* make sure object is deleted when instance expires */);
-        };
-
-        return this->addType<T>(typeId, instantiatorFunc, builderFunc);
-      }
+      std::shared_ptr<Type> addType(const std::string& typeId, std::function<void(TypeBuilder<T>&)> builderFunc);
 
       // add type with ID and builder func and with custom object instantiator
       template<class T>
-      std::shared_ptr<Type> addType(const std::string& typeId, std::function<T*()> objectInstatiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc) {
-        InstantiatorFunc instantiatorFunc = [objectInstatiatorFunc](TypeRef typeRef){
-          return typeRef->template createInstance<T>(*objectInstatiatorFunc(), true /* make sure object is deleted when instance expires */);
-        };
-
-        return this->addType<T>(typeId, instantiatorFunc, builderFunc);
-      }
+      std::shared_ptr<Type> addType(const std::string& typeId, std::function<T*()> objectInstatiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc);
 
       // add type with ID and builder func and with custom instance instantiator
       template<class T>
-      std::shared_ptr<Type> addType(const std::string& typeId, InstantiatorFunc instantiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc) {
-        auto typeRef = Type::create(typeId, builderFunc);
-        typeRefs.push_back(typeRef);
+      std::shared_ptr<Type> addType(const std::string& typeId, InstantiatorFunc instantiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc);
 
-        typeInstantiatorFuncs[typeRef.get()] = instantiatorFunc;
-        return typeRef;
-      }
+      inline const std::vector<TypeRef>& getTypes() const { return typeRefs; }
+      inline const std::vector<InstanceRef> getInstances() const { return instanceRefs; } 
 
-      const std::vector<TypeRef>& getTypes() const { return typeRefs; }
-      const std::vector<InstanceRef> getInstances() const { return instanceRefs; } 
+      InstanceRef createInstance(const std::string& typeId);
+      bool removeInstance(InstanceRef instance);
 
-      InstanceRef createInstance(const std::string& typeId) {
-        // find registred type
-        auto typeRef = getType(typeId);
-        if (!typeRef) {
-          std::cout << "Runtime::createInstance failed, could not find Type: " << typeId << std::endl;
-          return nullptr;
-        }
-
-        // find instatiator func that belongs to the found type
-        auto pair = typeInstantiatorFuncs.find(typeRef.get());
-        if (pair == typeInstantiatorFuncs.end()) {
-          std::cout << "Runtime::createInstance failed, could not find instantiator for Type: " << typeId << std::endl;
-          return nullptr;
-        }
-
-        // create, save and return
-        auto intantiatorFunc = pair->second;
-        auto instanceRef = intantiatorFunc(typeRef);
-        instanceRefs.push_back(instanceRef);
-        return instanceRef;
-      }
-
-      bool removeInstance(InstanceRef instance) {
-        auto it = std::find(instanceRefs.begin(), instanceRefs.end(), instance);
-        if (it == instanceRefs.end()) return false;
-        instanceRefs.erase(it);
-        return true;
-      }
-
-      static void copyTypes(Runtime& from, Runtime& to) {
-        for(auto typeRef : from.typeRefs)
-          to.typeRefs.push_back(typeRef);
-
-        for(auto pair : from.typeInstantiatorFuncs)
-          to.typeInstantiatorFuncs[pair.first] = pair.second;
-      }
     protected:
 
-      std::shared_ptr<Type> getType(const std::string& typeId) {
-        for(auto typeRef : typeRefs)
-          if (typeRef->getId() == typeId)
-            return typeRef;
-        return nullptr;
-      }
+      std::shared_ptr<Type> getType(const std::string& typeId);
 
     private:
 
@@ -102,4 +49,36 @@ namespace info {
       std::map<Type*, InstantiatorFunc> typeInstantiatorFuncs;
       std::vector<InstanceRef> instanceRefs;
   };
+
+
+  // add type with ID and builder func
+  template<class T>
+  std::shared_ptr<Type> Runtime::addType(const std::string& typeId, std::function<void(TypeBuilder<T>&)> builderFunc) {
+    InstantiatorFunc instantiatorFunc = [](TypeRef typeRef){
+      auto object = new T();
+      return typeRef->template createInstance<T>(*object, true /* make sure object is deleted when instance expires */);
+    };
+
+    return this->addType<T>(typeId, instantiatorFunc, builderFunc);
+  }
+
+  // add type with ID and builder func and with custom object instantiator
+  template<class T>
+  std::shared_ptr<Type> Runtime::addType(const std::string& typeId, std::function<T*()> objectInstatiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc) {
+    InstantiatorFunc instantiatorFunc = [objectInstatiatorFunc](TypeRef typeRef){
+      return typeRef->template createInstance<T>(*objectInstatiatorFunc(), true /* make sure object is deleted when instance expires */);
+    };
+
+    return this->addType<T>(typeId, instantiatorFunc, builderFunc);
+  }
+
+  // add type with ID and builder func and with custom instance instantiator
+  template<class T>
+  std::shared_ptr<Type> Runtime::addType(const std::string& typeId, InstantiatorFunc instantiatorFunc, std::function<void(TypeBuilder<T>&)> builderFunc) {
+    auto typeRef = Type::create(typeId, builderFunc);
+    typeRefs.push_back(typeRef);
+
+    typeInstantiatorFuncs[typeRef.get()] = instantiatorFunc;
+    return typeRef;
+  }
 }

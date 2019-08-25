@@ -25,6 +25,7 @@ namespace info {
         }
       }
 
+      /// DEPRECATED
       template<typename V>
       TypedPort<V>* port(const std::string& portname) {
         for(auto portRef : portRefs)
@@ -34,6 +35,7 @@ namespace info {
         return NULL;
       }
 
+      /// DEPRECATED
       inline TypedPort<Void>* signalPort(const std::string& portname) {
         return port<Void>(portname);
       }

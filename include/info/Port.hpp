@@ -41,17 +41,17 @@ namespace info {
     public: // sending methods
 
       template<typename V>
-      void sendData(const V& val) {
+      inline void sendData(const V& val) {
         signal.emit((const void*)&val);
       }
 
-      void sendSignal() {
+      inline void sendSignal() {
         signal.emit(NULL);
       }
 
     public: // receiving methods
 
-      cinder::signals::Connection onSignal(InFuncNoArg func) {
+      inline cinder::signals::Connection onSignal(InFuncNoArg func) {
         return signal.connect(toVoid(func));
       }
 
@@ -64,22 +64,19 @@ namespace info {
 
     public: // connect methods
 
-      cinder::signals::Connection outputTo(Port& receiver, bool performTypeCheck = false) {
+      inline cinder::signals::Connection outputTo(Port& receiver, bool performTypeCheck = false) {
         return Port::connect(*this, receiver, performTypeCheck);
       }
 
-      cinder::signals::Connection outputTo(Signal& signal) {
+      inline cinder::signals::Connection outputTo(Signal& signal) {
         return Port::connect(this->signal, signal);
       }
 
-      cinder::signals::Connection inputFrom(Port& sender, bool performTypeCheck = false) {
+      inline cinder::signals::Connection inputFrom(Port& sender, bool performTypeCheck = false) {
         return Port::connect(sender, *this, performTypeCheck);
       }
 
-      cinder::signals::Connection inputFrom(Signal& signal) {
-        // signal.connect([](const void* pp){
-        //   std::cout << "inputFrom inputFrom inputFrom inputFrom " << std::endl;
-        // });
+      inline cinder::signals::Connection inputFrom(Signal& signal) {
         return Port::connect(signal, this->signal);
       }
 
@@ -103,6 +100,7 @@ namespace info {
         };
       }
 
+    // TODO: make protected
     public: // attributes
       Signal signal;
 
@@ -112,6 +110,8 @@ namespace info {
       int flags;
   };
 
+
+  /// DEPRECATED DEPRECATED DEPRECATED DEPRECATED
   template<typename V>
   class TypedPort : public Port {
     
@@ -121,30 +121,5 @@ namespace info {
     public:
       TypedPort(const std::string& id, int flags = Port::FLAG_IN) : Port(id, typeid(V).name(), flags) {
       }
-
-      // void dataIn(const V& val) {
-      //   Port::dataIn<V>(val);
-      // }
-
-      // void dataOut(const V& val) {
-      //   Port::dataOut<V>(val);
-      // }
-
-      // cinder::signals::Connection onData(InFuncTypeRef func) {
-      //   return this->inSignal.connect(toVoid(func));
-      // }
-
-      // cinder::signals::Connection onDataOut(InFuncTypeRef func) {
-      //   return outSignal.connect(toVoid(func));
-      // }
-
-      // private:
-
-      //   inline InFuncVoid toVoid(InFuncTypeRef func) { 
-      //     return [func](const void* arg){
-      //       func(*(const V*)arg);
-      //     };
-      //   }
   };
-
 }

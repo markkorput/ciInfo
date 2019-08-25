@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 #include "info/Runtime.h"
-#include "info/components.h"
+#include "info/functions.h"
 
 using namespace info;
 

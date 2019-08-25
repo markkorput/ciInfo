@@ -1,7 +1,6 @@
 #pragma once
 
 namespace info {
-  class Void {
-
-  };
+  /// Dummy class that's used as subject for Ports without arguments
+  class Void { };
 }

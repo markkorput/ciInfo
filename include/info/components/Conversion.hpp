@@ -12,6 +12,28 @@ namespace info { namespace components {
       typedef std::function<D(S)> ConversionReturnFunc;
       typedef std::function<bool(const S&, D&)> ConversionSuccessFunc;
 
+    public:
+      Conversion(ConversionSuccessFunc conversionFunc) : conversionFunc(conversionFunc){}
+
+      void convert(const S& val) {
+        if (conversionFunc != nullptr) {
+          D conv;
+          bool success = conversionFunc(val,conv);
+          if (success)
+            conversionSignal.emit(&conv);
+          else 
+            failureSignal.emit(&conv);
+        }
+      }
+
+    public:
+      Port::Signal conversionSignal;
+      Port::Signal failureSignal;
+
+    private:
+      ConversionSuccessFunc conversionFunc;
+
+
     public: // static methods
 
       static void addToRuntime(Runtime& runtime, const std::string& typeName, ConversionSuccessFunc func) {
@@ -47,27 +69,6 @@ namespace info { namespace components {
           builder.addOutPort("failure")->apply(&Conversion<S,D>::failureSignal);
         };
       }
-
-    public:
-      Conversion(ConversionSuccessFunc conversionFunc) : conversionFunc(conversionFunc){}
-
-      void convert(const S& val) {
-        if (conversionFunc != nullptr) {
-          D conv;
-          bool success = conversionFunc(val,conv);
-          if (success)
-            conversionSignal.emit(&conv);
-          else 
-            failureSignal.emit(&conv);
-        }
-      }
-
-    public:
-      Port::Signal conversionSignal;
-      Port::Signal failureSignal;
-
-    private:
-      ConversionSuccessFunc conversionFunc;
   };
 
 }}

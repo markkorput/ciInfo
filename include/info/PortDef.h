@@ -18,13 +18,13 @@ namespace info {
   
     public:
 
-      const std::string& getId() const { return id; }
-      const std::string& getType() const { return type; }
-      int getFlags() const { return flags; }
-      bool isInput() { return flags & Port::FLAG_IN; }
-      bool isOutput() { return flags & Port::FLAG_OUT; }
+      inline const std::string& getId() const { return id; }
+      inline const std::string& getType() const { return type; }
+      inline int getFlags() const { return flags; }
+      inline bool isInput() { return flags & Port::FLAG_IN; }
+      inline bool isOutput() { return flags & Port::FLAG_OUT; }
 
-      void addConnector(ConnectorFunc func) {
+      inline void addConnector(ConnectorFunc func) {
         connectorFuncs.push_back(func);
       }
 
@@ -43,7 +43,5 @@ namespace info {
       std::string type;
       int flags;
       std::vector<ConnectorFunc> connectorFuncs;
-      // ::ctree::Signal<void(void)> signal;
   };
-
 }
