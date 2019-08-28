@@ -3,7 +3,7 @@ if( NOT TARGET ciInfo )
 	get_filename_component( ciInfo_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../include" ABSOLUTE )
 	get_filename_component( CINDER_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE )
 
-	FILE(GLOB ciInfo_SOURCES ${ciInfo_SOURCE_PATH}/info/*.cpp)
+	FILE(GLOB ciInfo_SOURCES ${ciInfo_SOURCE_PATH}/info/*.cpp ${ciInfo_SOURCE_PATH}/info/*/*.cpp)
 
 	add_library( ciInfo ${ciInfo_SOURCES} )
 

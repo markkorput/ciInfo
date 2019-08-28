@@ -130,6 +130,7 @@ namespace info {
     public: // get methods
 
       ImplementationRef getImplementation(const std::string& id);
+      const std::vector<ImplementationRef> getImplementations() const { return implementationRefs; }
       TypeRef getType(const std::string& id);
 
     public: // create methods
