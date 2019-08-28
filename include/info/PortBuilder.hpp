@@ -42,34 +42,31 @@ namespace info {
         });
       }
 
-      // void apply(std::function<void(T&, Port&)> logic) {
-      //   this->apply([logic](T& instance, TypedPort<V>& port){
-      //     logic(instance, port);
-      //   });
-      // }
-
-      void apply(std::function<void(T&, TypedPort<V>&)> logic) {
+      void apply(std::function<void(T&, Port&)> logic) {
         // connectors connect an runtime object to an info port using custom caller-provided logic
         this->portDefRef->addConnector([logic](void* instance, Port* port){
-          logic(*(T*)instance, *(TypedPort<V>*)port);
+          logic(*(T*)instance, *(Port*)port);
         });
       }
 
       void onData(std::function<void(const V& v)> func) {
-        this->apply([func](T& instance, info::TypedPort<V>& port) {
+        this->apply([func](T& instance, Port& port) {
           port.onData(func);
         });
       }
 
+      /// Connect pot to signal. Behaviour depends on this being an input or an output port;
+      /// for input ports this will emit the given signal whenever the input port's signal is emitted
+      /// for output signals, this will emit the output's signal whenever the given signal is emitted
       void apply(Port::Signal& signal) {
         if (portDefRef->isInput())
-          this->apply([](T& instance, Port& port) {
-              port.outputTo(instance.fireSignal);
+          this->apply([&signal](T& instance, Port& port) {
+              Port::connect(port, signal);
           });
 
         if (portDefRef->isOutput())
-          this->apply([](T& instance, Port& port) {
-              port.inputFrom(instance.fireSignal);
+          this->apply([&signal](T& instance, Port& port) {
+            Port::connect(signal, port);
           });
       }
 

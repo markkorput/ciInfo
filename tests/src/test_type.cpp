@@ -20,7 +20,7 @@ class Keyboard {
         builder.output<bool>("HasKeyDown");
         
         builder.input<bool>("enabled")
-          ->apply([](Keyboard& instance, info::TypedPort<bool>& port) {
+          ->apply([](Keyboard& instance, info::Port& port) {
 
             port.onData<bool>([&instance](const bool& val){
               instance.enabled = val;
@@ -63,7 +63,7 @@ TEST_CASE("info::Type", ""){
 
     Keyboard keyboard;
     auto instanceRef = info->createInstance(keyboard);
-    REQUIRE(instanceRef->port<bool>("enabled") != NULL);
+    REQUIRE(instanceRef->getInput("enabled") != nullptr);
 
     REQUIRE(keyboard.enabled == false);
     instanceRef->getInput("enabled")->sendData<bool>(true);

@@ -25,21 +25,6 @@ namespace info {
         }
       }
 
-      /// DEPRECATED
-      template<typename V>
-      TypedPort<V>* port(const std::string& portname) {
-        for(auto portRef : portRefs)
-          if (portRef->getId() == portname)
-            return (TypedPort<V>*)portRef.get();
-
-        return NULL;
-      }
-
-      /// DEPRECATED
-      inline TypedPort<Void>* signalPort(const std::string& portname) {
-        return port<Void>(portname);
-      }
-
       PortRef getPort(const std::string& portname, bool input=true) {
         return input ? getInput(portname) : getOutput(portname);
       }

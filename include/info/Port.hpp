@@ -92,6 +92,18 @@ namespace info {
         });
       }
 
+      inline static cinder::signals::Connection connect(Port& sender, Signal& receiver) {
+        return sender.signal.connect([&receiver](const void* arg){
+          receiver.emit(arg);
+        });
+      }
+
+      inline static cinder::signals::Connection connect(Signal& sender, Port& receiver) {
+        return sender.connect([&receiver](const void* arg){
+          receiver.signal.emit(arg);
+        });
+      }
+
     protected: // methods
 
       inline InFuncVoid toVoid(InFuncNoArg func) { 
@@ -110,16 +122,15 @@ namespace info {
       int flags;
   };
 
-
-  /// DEPRECATED DEPRECATED DEPRECATED DEPRECATED
-  template<typename V>
-  class TypedPort : public Port {
+  // /// DEPRECATED
+  // template<typename V>
+  // class TypedPort : public Port {
     
-    public:
-      typedef std::function<void(const V&)> InFuncTypeRef;
+  //   public:
+  //     typedef std::function<void(const V&)> InFuncTypeRef;
 
-    public:
-      TypedPort(const std::string& id, int flags = Port::FLAG_IN) : Port(id, typeid(V).name(), flags) {
-      }
-  };
+  //   public:
+  //     TypedPort(const std::string& id, int flags = Port::FLAG_IN) : Port(id, typeid(V).name(), flags) {
+  //     }
+  // };
 }

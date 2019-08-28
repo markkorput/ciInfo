@@ -12,7 +12,7 @@ void initRuntime(info::Runtime& runtime) {
 
   auto type = runtime.addType<bool>("bool", [signalRef](info::TypeBuilder<bool>& builder){
     builder.input<bool>("value")
-      ->apply([signalRef](bool& instance, info::TypedPort<bool>& port) {
+      ->apply([signalRef](bool& instance, info::Port& port) {
         // when data comes in through the value-IN-port; apply that value
         port.onData<bool>([signalRef, &instance](const bool& val){
           if (val == instance) return;
@@ -21,10 +21,10 @@ void initRuntime(info::Runtime& runtime) {
         });
       });
 
-    builder.output<bool>("value")
-      ->apply([signalRef](bool& instance, info::TypedPort<bool>& port) {
-        port.inputFrom(*signalRef);
-      });
+    builder.output<bool>("value")->apply(*signalRef);
+      // ->apply([signalRef](bool& instance, info::Port& port) {
+      //   port.inputFrom(*signalRef);
+      // });
   });
 }
 
